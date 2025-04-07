@@ -3,115 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프로젝트 1</title>
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --background-color: #f5f6fa;
-            --text-color: #2c3e50;
-            --card-background: #ffffff;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--background-color);
-            padding: 2rem;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .back-button {
-            display: inline-block;
-            margin-bottom: 2rem;
-            color: var(--secondary-color);
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .back-button:hover {
-            text-decoration: underline;
-        }
-
-        .project-header {
-            margin-bottom: 2rem;
-        }
-
-        .project-header h1 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-
-        .project-header .date {
-            color: var(--secondary-color);
-            margin-bottom: 1rem;
-        }
-
-        .project-content {
-            background-color: var(--card-background);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .project-content h2 {
-            color: var(--primary-color);
-            margin: 1.5rem 0 1rem;
-        }
-
-        .project-content p {
-            margin-bottom: 1rem;
-        }
-
-        .project-content ul {
-            margin-left: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
-        }
-    </style>
+    <title>브루마블</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <a href="../index.html" class="back-button">← 메인으로 돌아가기</a>
-
-        <div class="project-header">
-            <h1>프로젝트 1</h1>
-            <p class="date">2024.03.01</p>
+    <div class="game-container">
+        <!-- 게임 설정 화면 -->
+        <div id="game-settings-screen" class="screen">
+            <h2>게임 설정</h2>
+            <form id="game-settings">
+                <div class="form-group">
+                    <label>플레이어 수</label>
+                    <div class="player-buttons">
+                        <button type="button" class="player-button active" data-value="1">1인</button>
+                        <button type="button" class="player-button" data-value="2">2인</button>
+                        <button type="button" class="player-button" data-value="3">3인</button>
+                        <button type="button" class="player-button" data-value="4">4인</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="initial-funds">초기 자금 (만원)</label>
+                    <input type="number" id="initial-funds" value="200" min="100" step="10">
+                </div>
+                <button type="submit">게임 시작</button>
+            </form>
         </div>
 
-        <div class="project-content">
-            <h2>프로젝트 개요</h2>
-            <p>이 프로젝트는 예시 프로젝트입니다. 실제 프로젝트 내용을 여기에 작성하시면 됩니다.</p>
-
-            <h2>주요 기능</h2>
-            <ul>
-                <li>기능 1</li>
-                <li>기능 2</li>
-                <li>기능 3</li>
-            </ul>
-
-            <h2>사용 기술</h2>
-            <p>HTML, CSS, JavaScript 등 프로젝트에서 사용한 기술들을 나열합니다.</p>
-
-            <h2>프로젝트 결과</h2>
-            <p>프로젝트를 통해 달성한 결과나 성과를 설명합니다.</p>
+        <!-- 게임 화면 -->
+        <div id="game-screen" class="screen hidden">
+            <div class="game-container">
+                <div class="game-info-left">
+                    <div class="player-info">
+                        <!-- 플레이어 정보가 여기에 동적으로 생성됩니다 -->
+                    </div>
+                    <div class="dice-container">
+                        <button id="roll-dice" class="dice-button">주사위 던지기</button>
+                        <div class="dice-result">
+                            <span id="dice1">0</span>
+                            <span id="dice2">0</span>
+                        </div>
+                        <button id="end-turn" class="dice-button" style="display: none;">턴 종료</button>
+                    </div>
+                </div>
+                <div class="game-board">
+                    <!-- 게임판이 여기에 동적으로 생성됩니다 -->
+                </div>
+                <div class="game-info-right">
+                    <div class="current-location">
+                        <h3>현재 위치</h3>
+                        <div class="location-image"></div>
+                        <div class="location-details">
+                            <p>칸 번호: <span id="current-position">-</span></p>
+                            <p>도시: <span id="city-name">-</span></p>
+                            <p>설명: <span id="city-description">-</span></p>
+                            <p>가격: <span id="city-price">-</span></p>
+                            <p>임대료: <span id="city-rent">-</span></p>
+                        </div>
+                        <div class="property-actions">
+                            <button id="buy-property" class="action-button" style="display: none;">땅 구매</button>
+                            <div class="building-actions" style="display: none;">
+                                <button id="build-pension" class="action-button">펜션 건설</button>
+                                <button id="build-hotel" class="action-button">호텔 건설</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+    <script src="script.js"></script>
 </body>
 </html> 
