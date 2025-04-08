@@ -115,6 +115,20 @@ document.getElementById('game-settings').addEventListener('submit', function(eve
     startPlayerTurn();
 });
 
+// 버튼 상태 관리 함수
+function updateButtonStates(isDicePhase) {
+    if (isDicePhase) {
+        // 주사위 던지기 단계
+        rollDiceButton.style.display = 'block';
+        rollDiceButton.disabled = false;
+        endTurnButton.style.display = 'none';
+    } else {
+        // 턴 종료 단계
+        rollDiceButton.style.display = 'none';
+        endTurnButton.style.display = 'block';
+    }
+}
+
 // 주사위 굴리기 함수 수정
 async function rollDice() {
     // 주사위 요소 가져오기
@@ -125,6 +139,9 @@ async function rollDice() {
         console.error('주사위 요소를 찾을 수 없습니다.');
         return;
     }
+    
+    // 주사위 던지기 버튼 비활성화
+    rollDiceButton.disabled = true;
     
     // 일반 모드에서는 랜덤 주사위
     const dice1Value = Math.floor(Math.random() * 6) + 1;
@@ -147,8 +164,8 @@ async function rollDice() {
     const totalSteps = dice1Value + dice2Value;
     await movePlayer(currentPlayer, totalSteps);
     
-    // 주사위 버튼 비활성화
-    rollDiceButton.disabled = true;
+    // 버튼 상태 변경
+    updateButtonStates(false);
 }
 
 // 턴 종료 버튼 클릭 처리
@@ -164,8 +181,7 @@ endTurnButton.addEventListener('click', function() {
     currentDiceSum = 0;
     
     // 버튼 상태 변경
-    rollDiceButton.style.display = 'block';
-    endTurnButton.style.display = 'none';
+    updateButtonStates(true);
     
     // 현재 플레이어의 월급 수령 상태 초기화
     playerSalaryReceived[currentPlayer - 1] = false;
@@ -174,8 +190,7 @@ endTurnButton.addEventListener('click', function() {
 // 플레이어 턴 시작 처리
 function startPlayerTurn() {
     updatePlayerTurn();
-    rollDiceButton.style.display = 'block';
-    endTurnButton.style.display = 'none';
+    updateButtonStates(true);
     isDiceRolled = false;
     currentDiceSum = 0;
 }
@@ -482,8 +497,8 @@ async function movePlayer(player, steps) {
         }
     }
 
-    // 이동이 완료된 후 턴 종료 버튼 활성화
-    endTurnButton.style.display = 'block';
+    // 이동이 완료된 후 버튼 상태 변경
+    updateButtonStates(false);
 }
 
 // 다음 위치 계산 함수
@@ -594,8 +609,8 @@ function handleJumpSelection(cellIndex) {
         const overlay = document.querySelector('.jump-selection-overlay');
         if (overlay) overlay.remove();
         
-        // 이동이 완료된 후 턴 종료 버튼 활성화
-        endTurnButton.style.display = 'block';
+        // 이동이 완료된 후 버튼 상태 변경
+        updateButtonStates(false);
     }, 300);
 }
 
