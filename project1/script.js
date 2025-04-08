@@ -181,6 +181,9 @@ function showAdditionProblem(dice1Value, dice2Value) {
     dice1ValueSpan.textContent = dice1Value;
     dice2ValueSpan.textContent = dice2Value;
     answerInput.textContent = '?';
+    answerInput.style.color = '#333';
+    
+    // 오버레이 표시
     additionProblemOverlay.classList.remove('hidden');
     
     let currentAnswer = '';
