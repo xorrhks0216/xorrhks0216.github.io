@@ -160,12 +160,71 @@ async function rollDice() {
     dice1Element.classList.remove('rolling');
     dice2Element.classList.remove('rolling');
     
-    // 이동 처리
-    const totalSteps = dice1Value + dice2Value;
-    await movePlayer(currentPlayer, totalSteps);
+    // 게임이 시작된 후에만 덧셈 문제 표시
+    if (gameScreen.classList.contains('hidden') === false) {
+        showAdditionProblem(dice1Value, dice2Value);
+    } else {
+        // 게임 시작 전에는 바로 이동
+        movePlayer(currentPlayer, dice1Value + dice2Value);
+    }
+}
+
+// 덧셈 문제 표시 함수
+function showAdditionProblem(dice1Value, dice2Value) {
+    const additionProblemOverlay = document.querySelector('.addition-problem-overlay');
+    const dice1ValueSpan = document.getElementById('dice1-value');
+    const dice2ValueSpan = document.getElementById('dice2-value');
+    const answerInput = document.getElementById('answer-input');
+    const submitButton = document.getElementById('submit-answer');
     
-    // 버튼 상태 변경
-    updateButtonStates(false);
+    // 문제 표시
+    dice1ValueSpan.textContent = dice1Value;
+    dice2ValueSpan.textContent = dice2Value;
+    answerInput.textContent = '?';
+    additionProblemOverlay.classList.remove('hidden');
+    
+    let currentAnswer = '';
+    
+    // 숫자 버튼 이벤트 리스너 추가
+    const numberButtons = document.querySelectorAll('.number-button');
+    numberButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (this.classList.contains('clear')) {
+                currentAnswer = '';
+                answerInput.textContent = '?';
+                return;
+            }
+            
+            if (currentAnswer.length < 2) {
+                currentAnswer += this.textContent;
+                answerInput.textContent = currentAnswer;
+            }
+        });
+    });
+    
+    // 정답 제출 버튼 이벤트 리스너
+    submitButton.onclick = function() {
+        const userAnswer = parseInt(currentAnswer);
+        const correctAnswer = dice1Value + dice2Value;
+        
+        if (userAnswer === correctAnswer) {
+            // 정답일 경우
+            answerInput.style.color = '#4CAF50';
+            setTimeout(() => {
+                additionProblemOverlay.classList.add('hidden');
+                // 이동 처리
+                movePlayer(currentPlayer, dice1Value + dice2Value);
+            }, 1000);
+        } else {
+            // 오답일 경우
+            answerInput.style.color = '#f44336';
+            setTimeout(() => {
+                currentAnswer = '';
+                answerInput.textContent = '?';
+                answerInput.style.color = '#333';
+            }, 1000);
+        }
+    };
 }
 
 // 턴 종료 버튼 클릭 처리
