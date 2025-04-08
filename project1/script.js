@@ -25,48 +25,562 @@ let cityBuildings = []; // 도시별 건물 정보를 저장하는 배열
 let isJumpSelectionMode = false;
 let jumpSelectionPlayer = null;
 
-// 도시 정보
-const cities = [
-    { position: 0, name: "무인도", description: "무인도에 도착했습니다", price: 0, rent: 0 },
-    { position: 1, name: "라스베가스", description: "세계적인 도박의 도시", price: 200, rent: 20 },
-    { position: 2, name: "특수1", description: "특수 칸입니다", price: 0, rent: 0 },
-    { position: 3, name: "모스크바", description: "러시아의 수도", price: 180, rent: 18 },
-    { position: 4, name: "베를린", description: "독일의 수도", price: 160, rent: 16 },
-    { position: 5, name: "하와이", description: "태평양의 휴양지", price: 140, rent: 14 },
-    { position: 6, name: "홍콩", description: "아시아의 금융 중심지", price: 220, rent: 22 },
-    { position: 7, name: "도쿄", description: "일본의 수도", price: 240, rent: 24 },
-    { position: 8, name: "특수1", description: "특수 칸입니다", price: 0, rent: 0 },
-    { position: 9, name: "워싱턴", description: "미국의 수도", price: 260, rent: 26 },
-    { position: 10, name: "생일", description: "생일 칸입니다", price: 0, rent: 0 },
-    { position: 11, name: "스톡홀름", description: "스웨덴의 수도", price: 150, rent: 15 },
-    { position: 21, name: "파리", description: "프랑스의 수도", price: 280, rent: 28 },
-    { position: 22, name: "특수2", description: "특수 칸입니다", price: 0, rent: 0 },
-    { position: 32, name: "특수2", description: "특수 칸입니다", price: 0, rent: 0 },
-    { position: 33, name: "코펜하겐", description: "덴마크의 수도", price: 170, rent: 17 },
-    { position: 43, name: "로마", description: "이탈리아의 수도", price: 190, rent: 19 },
-    { position: 44, name: "헬싱키", description: "핀란드의 수도", price: 160, rent: 16 },
-    { position: 54, name: "런던", description: "영국의 수도", price: 300, rent: 30 },
-    { position: 55, name: "사이판", description: "태평양의 휴양지", price: 130, rent: 13 },
-    { position: 65, name: "독도", description: "대한민국의 섬", price: 120, rent: 12 },
-    { position: 66, name: "베이징", description: "중국의 수도", price: 250, rent: 25 },
-    { position: 76, name: "뉴욕", description: "미국의 경제 중심지", price: 320, rent: 32 },
-    { position: 77, name: "싱가포르", description: "아시아의 금융 중심지", price: 230, rent: 23 },
-    { position: 87, name: "부산", description: "대한민국의 제2도시", price: 140, rent: 14 },
-    { position: 88, name: "특수2", description: "특수 칸입니다", price: 0, rent: 0 },
-    { position: 98, name: "생일축하금", description: "생일축하금 칸입니다", price: 0, rent: 0 },
-    { position: 99, name: "방콕", description: "태국의 수도", price: 150, rent: 15 },
-    { position: 109, name: "서울", description: "대한민국의 수도", price: 350, rent: 35 },
-    { position: 110, name: "코너점프", description: "코너점프 칸입니다", price: 0, rent: 0 },
-    { position: 111, name: "트리폴리", description: "리비아의 수도", price: 130, rent: 13 },
-    { position: 112, name: "특수1", description: "특수 칸입니다", price: 0, rent: 0 },
-    { position: 113, name: "바르샤바", description: "폴란드의 수도", price: 160, rent: 16 },
-    { position: 114, name: "카이로", description: "이집트의 수도", price: 180, rent: 18 },
-    { position: 115, name: "괌", description: "태평양의 휴양지", price: 140, rent: 14 },
-    { position: 116, name: "멕시코시티", description: "멕시코의 수도", price: 200, rent: 20 },
-    { position: 117, name: "브라질리아", description: "브라질의 수도", price: 190, rent: 19 },
-    { position: 118, name: "특수1", description: "특수 칸입니다", price: 0, rent: 0 },
-    { position: 119, name: "산티아고", description: "칠레의 수도", price: 170, rent: 17 },
-    { position: 120, name: "출발점", description: "게임의 출발점입니다", price: 0, rent: 0 }
+const CellType = {
+    REGION: 'region',           // 지역
+    ISLAND: 'island',           // 섬
+    SPECIAL_CARD: 'special_card', // 스페셜카드
+    JUMP: 'jump',               // 점프
+    DESERT_ISLAND: 'desert_island', // 무인도
+    BIRTHDAY_PARTY: 'birthday_party', // 생일파티
+    BIRTHDAY_FUND: 'birthday_fund', // 생일파티 기금 모금
+    START: 'start'              // 출발
+};
+
+const gameCells = [
+    { position: 0, type: CellType.DESERT_ISLAND, name: "무인도", description: "무인도에 도착했습니다" },
+    { 
+        position: 1, 
+        type: CellType.REGION, 
+        name: "라스베가스", 
+        description: "세계적인 도박의 도시", 
+        price: 83,
+        rent: {
+            base: 14,
+            pension1: 42,
+            pension2: 120,
+            pension3: 310, 
+            pension4: 380,
+            hotel: 445
+        },
+        buildingCost: {
+            pension: 50,
+            hotel: 280
+        }
+    },
+    { position: 2, type: CellType.SPECIAL_CARD, name: "특수1", description: "특수 칸입니다" },
+    { 
+        position: 3, 
+        type: CellType.REGION, 
+        name: "모스크바", 
+        description: "러시아의 수도", 
+        price: 85,
+        rent: {
+            base: 15,
+            pension1: 43,
+            pension2: 128,
+            pension3: 318,
+            pension4: 388   ,
+            hotel: 455
+        },
+        buildingCost: {
+            pension: 50,
+            hotel: 280
+        }
+    },
+    { 
+        position: 4, 
+        type: CellType.REGION, 
+        name: "베를린", 
+        description: "독일의 수도", 
+        price: 95,
+        rent: {
+            base: 16,
+            pension1: 45,
+            pension2: 132,
+            pension3: 325,
+            pension4: 395,
+            hotel: 465
+        },
+        buildingCost: {
+            pension: 50,
+            hotel: 280
+        }
+    },
+    { 
+        position: 5, 
+        type: CellType.ISLAND, 
+        name: "하와이", 
+        description: "태평양의 휴양지", 
+        price: 140,
+        rent: {
+            base: 14,
+            pension1: 28,
+            pension2: 56,
+            pension3: 112,
+            pension4: 224,
+            hotel: 420
+        },
+        buildingCost: {
+            pension: 70,
+            hotel: 210
+        }
+    },
+    { 
+        position: 6, 
+        type: CellType.REGION, 
+        name: "홍콩", 
+        description: "아시아의 금융 중심지", 
+        price: 105,
+        rent: {
+            base: 16,
+            pension1: 48,
+            pension2: 144,
+            pension3: 340,
+            pension4: 410,
+            hotel: 485
+        },
+        buildingCost: {
+            pension: 60,
+            hotel: 320
+        }
+    },
+    { 
+        position: 7, 
+        type: CellType.REGION, 
+        name: "도쿄", 
+        description: "일본의 수도", 
+        price: 110,
+        rent: {
+            base: 17,
+            pension1: 50,
+            pension2: 148,
+            pension3: 345,
+            pension4: 415,
+            hotel: 490
+        },
+        buildingCost: {
+            pension: 60,
+            hotel: 320
+        }
+    },
+    { position: 8, type: CellType.SPECIAL_CARD, name: "특수1", description: "특수 칸입니다", price: 0, rent: 0 },
+    { 
+        position: 9, 
+        type: CellType.REGION, 
+        name: "워싱턴", 
+        description: "미국의 수도", 
+        price: 115,
+        rent: {
+            base: 17,
+            pension1: 52,
+            pension2: 155,
+            pension3: 355,
+            pension4: 425,
+            hotel: 495
+        },
+        buildingCost: {
+            pension: 60,
+            hotel: 320
+        }
+    },
+    { position: 10, type: CellType.BIRTHDAY_PARTY, name: "생일", description: "생일 칸입니다", price: 0, rent: 0 },
+    { 
+        position: 11, 
+        type: CellType.REGION, 
+        name: "스톡홀름", 
+        description: "스웨덴의 수도", 
+        price: 80,
+        rent: {
+            base: 14,
+            pension1: 40,
+            pension2: 125,
+            pension3: 320,
+            pension4: 358,
+            hotel: 460
+        },
+        buildingCost: {
+            pension: 45,
+            hotel: 240
+        }
+    },
+    { 
+        position: 21, 
+        type: CellType.REGION, 
+        name: "파리", 
+        description: "프랑스의 수도", 
+        price: 115,
+        rent: {
+            base: 18,
+            pension1: 55,
+            pension2: 160,
+            pension3: 360,
+            pension4: 430,
+            hotel: 500
+        },
+        buildingCost: {
+            pension: 70,
+            hotel: 360
+        }
+    },
+    { position: 22, type: CellType.SPECIAL_CARD, name: "특수2", description: "특수 칸입니다", price: 0, rent: 0 },
+    { position: 32, type: CellType.SPECIAL_CARD, name: "특수2", description: "특수 칸입니다", price: 0, rent: 0 },
+    { 
+        position: 33, 
+        type: CellType.REGION, 
+        name: "코펜하겐", 
+        description: "덴마크의 수도", 
+        price: 77,
+        rent: {
+            base: 13,
+            pension1: 39,
+            pension2: 115,
+            pension3: 310,
+            pension4: 370,
+            hotel: 450
+        },
+        buildingCost: {
+            pension: 45,
+            hotel: 240
+        }
+    },
+    { 
+        position: 43, 
+        type: CellType.REGION, 
+        name: "로마", 
+        description: "이탈리아의 수도", 
+        price: 125,
+        rent: {
+            base: 19,
+            pension1: 57,
+            pension2: 170,
+            pension3: 370,
+            pension4: 450,
+            hotel: 520
+        },
+        buildingCost: {
+            pension: 70,
+            hotel: 360
+        }
+    },
+    { 
+        position: 44, 
+        type: CellType.REGION, 
+        name: "헬싱키", 
+        description: "핀란드의 수도", 
+        price: 72,
+        rent: {
+            base: 13,
+            pension1: 38,
+            pension2: 100,
+            pension3: 260,
+            pension4: 330,
+            hotel: 430
+        },
+        buildingCost: {
+            pension: 45,
+            hotel: 240
+        }
+    },
+    { 
+        position: 54, 
+        type: CellType.REGION, 
+        name: "런던", 
+        description: "영국의 수도", 
+        price: 130,
+        rent: {
+            base: 20,
+            pension1: 62,
+            pension2: 180,
+            pension3: 400,
+            pension4: 480,
+            hotel: 560
+        },
+        buildingCost: {
+            pension: 70,
+            hotel: 360
+        }
+    },
+    { 
+        position: 55, 
+        type: CellType.ISLAND, 
+        name: "사이판", 
+        description: "태평양의 휴양지", 
+        price: 130,
+        rent: {
+            base: 13,
+            pension1: 26,
+            pension2: 52,
+            pension3: 104,
+            pension4: 208,
+            hotel: 390
+        },
+        buildingCost: {
+            pension: 65,
+            hotel: 195
+        }
+    },
+    { 
+        position: 65, 
+        type: CellType.ISLAND, 
+        name: "독도", 
+        description: "대한민국의 섬", 
+        price: 120,
+        rent: {
+            base: 12,
+            pension1: 24,
+            pension2: 48,
+            pension3: 96,
+            pension4: 192,
+            hotel: 360
+        },
+        buildingCost: {
+            pension: 60,
+            hotel: 180
+        }
+    },
+    { 
+        position: 66, 
+        type: CellType.REGION, 
+        name: "베이징", 
+        description: "중국의 수도", 
+        price: 67,
+        rent: {
+            base: 12,
+            pension1: 35,
+            pension2: 90,
+            pension3: 240,
+            pension4: 325,
+            hotel: 400
+        },
+        buildingCost: {
+            pension: 40,
+            hotel: 200
+        }
+    },
+    { 
+        position: 76, 
+        type: CellType.REGION, 
+        name: "뉴욕", 
+        description: "미국의 경제 중심지", 
+        price: 135,
+        rent: {
+            base: 21,
+            pension1: 68,
+            pension2: 200,
+            pension3: 420,
+            pension4: 500,
+            hotel: 590
+        },
+        buildingCost: {
+            pension: 80,
+            hotel: 400
+        }
+    },
+    { 
+        position: 77, 
+        type: CellType.REGION, 
+        name: "싱가포르", 
+        description: "아시아의 금융 중심지", 
+        price: 65,
+        rent: {
+            base: 11,
+            pension1: 32,
+            pension2: 85,
+            pension3: 220,
+            pension4: 320,
+            hotel: 380
+        },
+        buildingCost: {
+            pension: 40,
+            hotel: 200
+        }
+    },
+    { 
+        position: 87, 
+        type: CellType.REGION, 
+        name: "부산", 
+        description: "대한민국의 제2도시", 
+        price: 140,
+        rent: {
+            base: 22,
+            pension1: 72,
+            pension2: 210,
+            pension3: 450,
+            pension4: 530,
+            hotel: 610
+        },
+        buildingCost: {
+            pension: 80,
+            hotel: 400
+        }
+    },
+    { position: 88, type: CellType.SPECIAL_CARD, name: "특수2", description: "특수 칸입니다", price: 0, rent: 0 },
+    { position: 98, type: CellType.BIRTHDAY_FUND, name: "생일축하금", description: "생일축하금 칸입니다", price: 0, rent: 0 },
+    { 
+        position: 99, 
+        type: CellType.REGION, 
+        name: "방콕", 
+        description: "태국의 수도", 
+        price: 60,
+        rent: {
+            base: 10,
+            pension1: 30,
+            pension2: 80,
+            pension3: 200,
+            pension4: 310,
+            hotel: 360
+        },
+        buildingCost: {
+            pension: 40,
+            hotel: 200
+        }
+    },
+    { 
+        position: 109, 
+        type: CellType.REGION, 
+        name: "서울", 
+        description: "대한민국의 수도", 
+        price: 160,
+        rent: {
+            base: 23,
+            pension1: 80,
+            pension2: 240,
+            pension3: 560,
+            pension4: 680,
+            hotel: 800
+        },
+        buildingCost: {
+            pension: 80,
+            hotel: 400
+        }
+    },
+    { position: 110, type: CellType.JUMP, name: "코너점프", description: "코너점프 칸입니다", price: 0, rent: 0 },
+    { 
+        position: 111, 
+        type: CellType.REGION, 
+        name: "트리폴리", 
+        description: "리비아의 수도", 
+        price: 55,
+        rent: {
+            base: 9,
+            pension1: 25,
+            pension2: 70,
+            pension3: 180,
+            pension4: 280,
+            hotel: 340
+        },
+        buildingCost: {
+            pension: 30,
+            hotel: 150
+        }
+    },
+    { position: 112, type: CellType.SPECIAL_CARD, name: "특수1", description: "특수 칸입니다", price: 0, rent: 0 },
+    { 
+        position: 113, 
+        type: CellType.REGION, 
+        name: "바르샤바", 
+        description: "폴란드의 수도", 
+        price: 52,
+        rent: {
+            base: 8,
+            pension1: 22,
+            pension2: 65,
+            pension3: 150,
+            pension4: 260,
+            hotel: 320
+        },
+        buildingCost: {
+            pension: 30,
+            hotel: 150
+        }
+    },
+    { 
+        position: 114, 
+        type: CellType.REGION, 
+        name: "카이로", 
+        description: "이집트의 수도", 
+        price: 45,
+        rent: {
+            base: 7,
+            pension1: 20,
+            pension2: 50,
+            pension3: 130,
+            pension4: 240,
+            hotel: 300
+        },
+        buildingCost: {
+            pension: 30,
+            hotel: 150
+        }
+    },
+    { 
+        position: 115, 
+        type: CellType.ISLAND, 
+        name: "괌", 
+        description: "태평양의 휴양지", 
+        price: 140,
+        rent: {
+            base: 14,
+            pension1: 28,
+            pension2: 56,
+            pension3: 112,
+            pension4: 224,
+            hotel: 420
+        },
+        buildingCost: {
+            pension: 70,
+            hotel: 210
+        }
+    },
+    { 
+        position: 116, 
+        type: CellType.REGION, 
+        name: "멕시코시티", 
+        description: "멕시코의 수도", 
+        price: 35,
+        rent: {
+            base: 6,
+            pension1: 18,
+            pension2: 40,
+            pension3: 120,
+            pension4: 200,
+            hotel: 280
+        },
+        buildingCost: {
+            pension: 20,
+            hotel: 100
+        }
+    },
+    { 
+        position: 117, 
+        type: CellType.REGION, 
+        name: "브라질리아", 
+        description: "브라질의 수도", 
+        price: 28,
+        rent: {
+            base: 5,
+            pension1: 15,
+            pension2: 35,
+            pension3: 110,
+            pension4: 180,
+            hotel: 250
+        },
+        buildingCost: {
+            pension: 20,
+            hotel: 100
+        }
+    },
+    { position: 118, type: CellType.SPECIAL_CARD, name: "특수1", description: "특수 칸입니다", price: 0, rent: 0 },
+    { 
+        position: 119, 
+        type: CellType.REGION, 
+        name: "산티아고", 
+        description: "칠레의 수도", 
+        price: 25,
+        rent: {
+            base: 4,
+            pension1: 10,
+            pension2: 32,
+            pension3: 100,
+            pension4: 160,
+            hotel: 220
+        },
+        buildingCost: {
+            pension: 20,
+            hotel: 100
+        }
+    },
+    { position: 120, type: CellType.START, name: "출발점", description: "게임의 출발점입니다", price: 0, rent: 0 }
 ];
 
 // 플레이어 수 버튼 이벤트 리스너
@@ -388,12 +902,12 @@ function updateCityInfo(position) {
     currentPosition.textContent = position;
 
     // 도시 정보 업데이트
-    const city = cities.find(c => c.position === position);
+    const city = gameCells.find(c => c.position === position);
     if (city) {
         cityName.textContent = city.name;
         cityDescription.textContent = city.description;
-        cityPrice.textContent = `가격: ${city.price}만원`;
-        cityRent.textContent = `임대료: ${city.rent}만원`;
+        cityPrice.textContent = `${city.price}만원`;
+        cityRent.textContent = `${calculateRent(position)}만원`;
         
         // 도시 이미지 설정
         let imagePath = '';
@@ -593,7 +1107,7 @@ function getNextPosition(currentPosition) {
 // 땅 구매 버튼 클릭 처리
 document.getElementById('buy-property').addEventListener('click', function() {
     const currentPosition = playerPositions[currentPlayer - 1];
-    const city = cities.find(c => c.position === currentPosition);
+    const city = gameCells.find(c => c.position === currentPosition);
     
     if (city && playerFunds[currentPlayer - 1] >= city.price) {
         if (confirm(`${city.name}을(를) ${city.price}만원에 구매하시겠습니까?`)) {
@@ -608,7 +1122,7 @@ document.getElementById('buy-property').addEventListener('click', function() {
 // 펜션 건설 버튼 클릭 처리
 document.getElementById('build-pension').addEventListener('click', function() {
     const currentPosition = playerPositions[currentPlayer - 1];
-    const city = cities.find(c => c.position === currentPosition);
+    const city = gameCells.find(c => c.position === currentPosition);
     const buildings = cityBuildings[currentPosition];
     
     if (city && buildings.pensions < 4 && playerFunds[currentPlayer - 1] >= city.price * 0.5) {
@@ -624,7 +1138,7 @@ document.getElementById('build-pension').addEventListener('click', function() {
 // 호텔 건설 버튼 클릭 처리
 document.getElementById('build-hotel').addEventListener('click', function() {
     const currentPosition = playerPositions[currentPlayer - 1];
-    const city = cities.find(c => c.position === currentPosition);
+    const city = gameCells.find(c => c.position === currentPosition);
     const buildings = cityBuildings[currentPosition];
     
     if (city && buildings.pensions === 4 && !buildings.hotel && playerFunds[currentPlayer - 1] >= city.price) {
@@ -709,3 +1223,29 @@ rollDiceButton.addEventListener('click', async function() {
     await rollDice();
     isDiceRolled = true;
 });
+
+function calculateRent(position) {
+    const cell = gameCells.find(c => c.position === position);
+    if (!cell || cell.type !== CellType.REGION) return 0;
+
+    const buildings = cityBuildings[position];
+    
+    // 건물이 없는 경우 기본 통행료
+    if (!buildings || (buildings.pensions === 0 && !buildings.hotel)) {
+        return cell.rent.base;
+    }
+    
+    // 호텔이 있는 경우
+    if (buildings.hotel) {
+        return cell.rent.hotel;
+    }
+    
+    // 펜션 개수에 따른 통행료
+    switch(buildings.pensions) {
+        case 1: return cell.rent.pension1;
+        case 2: return cell.rent.pension2;
+        case 3: return cell.rent.pension3;
+        case 4: return cell.rent.pension4;
+        default: return cell.rent.base;
+    }
+}
