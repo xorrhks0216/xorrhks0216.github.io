@@ -684,7 +684,7 @@ button:hover {
 }
 
 .addition-problem {
-    background-color: white;
+    background-color: #f8f9fa;
     padding: 40px;
     border-radius: 15px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
@@ -706,12 +706,13 @@ button:hover {
 }
 
 #answer-input {
-    border-bottom: 3px solid #333;
+    border-bottom: 3px solid #4CAF50;
     min-width: 50px;
     display: inline-block;
     text-align: center;
     font-size: 48px;
     margin: 0 10px;
+    color: #333;
 }
 
 .number-buttons {
@@ -725,30 +726,36 @@ button:hover {
 .number-button {
     padding: 20px;
     font-size: 24px;
-    background-color: #f0f0f0;
-    border: 2px solid #ddd;
+    background-color: #ffffff;
+    border: 2px solid #4CAF50;
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
+    color: #333;
+    font-weight: bold;
 }
 
 .number-button:hover {
-    background-color: #e0e0e0;
+    background-color: #4CAF50;
+    color: white;
     transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .number-button:active {
-    background-color: #d0d0d0;
+    background-color: #45a049;
     transform: scale(0.95);
 }
 
 .number-button.clear {
     background-color: #ff6b6b;
     color: white;
+    border-color: #ff6b6b;
 }
 
 .number-button.clear:hover {
     background-color: #ff5252;
+    border-color: #ff5252;
 }
 
 .submit-button {
@@ -760,11 +767,13 @@ button:hover {
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-weight: bold;
 }
 
 .submit-button:hover {
     background-color: #45a049;
     transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .submit-button:active {
