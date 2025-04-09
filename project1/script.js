@@ -693,13 +693,34 @@ async function rollDice() {
             devDiceInput.classList.remove('hidden');
             return;
         }
+
+        // 주사위 요소 가져오기
+        const dice1Element = document.getElementById('dice1');
+        const dice2Element = document.getElementById('dice2');
+        
+        if (!dice1Element || !dice2Element) {
+            console.error('주사위 요소를 찾을 수 없습니다.');
+            return;
+        }
+
+        // 주사위 던지기 버튼 비활성화
+        rollDiceButton.disabled = true;
         
         const dice1Value = Math.floor(Math.random() * 6) + 1;
         const dice2Value = Math.floor(Math.random() * 6) + 1;
+
+        // 주사위 애니메이션
+        dice1Element.classList.add('rolling');
+        dice2Element.classList.add('rolling');
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         dice1.textContent = dice1Value;
         dice2.textContent = dice2Value;
         currentDiceSum = dice1Value + dice2Value;
+
+        dice1Element.classList.remove('rolling');
+        dice2Element.classList.remove('rolling');
         
         showAdditionProblem(dice1Value, dice2Value);
     }
