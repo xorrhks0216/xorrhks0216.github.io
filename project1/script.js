@@ -30,6 +30,9 @@ let cityBuildings = []; // 도시별 건물 정보를 저장하는 배열
 let isJumpSelectionMode = false;
 let jumpSelectionPlayer = null;
 
+// 플레이어별 도시 구매 시점을 저장하는 배열 추가
+let cityPurchaseTurns = [];
+
 const CellType = {
     REGION: 'region',           // 지역
     ISLAND: 'island',           // 섬
@@ -608,7 +611,6 @@ document.querySelectorAll('.player-button').forEach(button => {
 document.getElementById('game-settings').addEventListener('submit', function(event) {
     event.preventDefault();
     
-    // 플레이어 수와 초기 자금 설정
     const initialFunds = parseInt(document.getElementById('initial-funds').value);
     
     // 게임판 생성
@@ -625,6 +627,8 @@ document.getElementById('game-settings').addEventListener('submit', function(eve
     playerProperties = Array(selectedPlayerCount).fill([]);
     // 도시별 건물 정보 초기화
     cityBuildings = Array(121).fill({ pensions: 0, hotel: false });
+    // 도시 구매 시점 초기화
+    cityPurchaseTurns = Array(121).fill(0);
     
     // 화면 전환
     gameSettingsScreen.classList.add('hidden');
@@ -774,6 +778,9 @@ endTurnButton.addEventListener('click', function() {
     
     // 현재 플레이어의 월급 수령 상태 초기화
     playerSalaryReceived[currentPlayer - 1] = false;
+    
+    // 현재 플레이어의 위치 정보 업데이트
+    updateCityInfo(playerPositions[currentPlayer - 1]);
 });
 
 // 플레이어 턴 시작 처리
@@ -911,7 +918,7 @@ function updateCityInfo(position) {
     const buildPensionButton = document.getElementById('build-pension');
     const buildHotelButton = document.getElementById('build-hotel');
 
-    // 현재 위치 표시 (0부터 시작)
+    // 현재 위치 표시
     currentPosition.textContent = position;
 
     // 도시 정보 업데이트
@@ -981,6 +988,7 @@ function updateCityInfo(position) {
         const isOwned = currentPlayerProperties.includes(position);
         const isSpecialCell = city.price === 0;
         const buildings = cityBuildings[position];
+        const isJustPurchased = cityPurchaseTurns[position] === currentPlayer;
         
         if (!isSpecialCell) {
             if (!isOwned) {
@@ -993,11 +1001,17 @@ function updateCityInfo(position) {
                 buyPropertyButton.style.display = 'none';
                 buildingActions.style.display = 'flex';
                 
-                // 펜션 건설 가능 여부
-                buildPensionButton.disabled = buildings.pensions >= 4 || playerFunds[currentPlayer - 1] < city.price * 0.5;
-                
-                // 호텔 건설 가능 여부
-                buildHotelButton.disabled = buildings.pensions < 4 || buildings.hotel || playerFunds[currentPlayer - 1] < city.price;
+                // 이번 턴에 구매한 도시인 경우 건물 건설 불가
+                if (isJustPurchased) {
+                    buildPensionButton.disabled = true;
+                    buildHotelButton.disabled = true;
+                } else {
+                    // 펜션 건설 가능 여부
+                    buildPensionButton.disabled = buildings.pensions >= 4 || playerFunds[currentPlayer - 1] < city.price * 0.5;
+                    
+                    // 호텔 건설 가능 여부
+                    buildHotelButton.disabled = buildings.pensions < 4 || buildings.hotel || playerFunds[currentPlayer - 1] < city.price;
+                }
             }
         } else {
             buyPropertyButton.style.display = 'none';
@@ -1126,6 +1140,8 @@ document.getElementById('buy-property').addEventListener('click', function() {
         if (confirm(`${city.name}을(를) ${city.price}만원에 구매하시겠습니까?`)) {
             updatePlayerFunds(currentPlayer, -city.price);
             playerProperties[currentPlayer - 1].push(currentPosition);
+            // 도시 구매 시점 저장
+            cityPurchaseTurns[currentPosition] = currentPlayer;
             updateCityInfo(currentPosition);
             alert(`${city.name}을(를) 구매했습니다!`);
         }
