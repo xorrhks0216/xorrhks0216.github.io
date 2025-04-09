@@ -57,7 +57,7 @@ const gameCells = [
             hotel: 280
         }
     },
-    { position: 2, type: CellType.SPECIAL_CARD, name: "특수1", description: "특수 칸입니다" },
+    { position: 2, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다." },
     { 
         position: 3, 
         type: CellType.REGION, 
@@ -153,7 +153,7 @@ const gameCells = [
             hotel: 320
         }
     },
-    { position: 8, type: CellType.SPECIAL_CARD, name: "특수1", description: "특수 칸입니다", price: 0, rent: 0 },
+    { position: 8, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
     { 
         position: 9, 
         type: CellType.REGION, 
@@ -212,8 +212,8 @@ const gameCells = [
             hotel: 360
         }
     },
-    { position: 22, type: CellType.SPECIAL_CARD, name: "특수2", description: "특수 칸입니다", price: 0, rent: 0 },
-    { position: 32, type: CellType.SPECIAL_CARD, name: "특수2", description: "특수 칸입니다", price: 0, rent: 0 },
+    { position: 22, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
+    { position: 32, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
     { 
         position: 33, 
         type: CellType.REGION, 
@@ -404,7 +404,7 @@ const gameCells = [
             hotel: 400
         }
     },
-    { position: 88, type: CellType.SPECIAL_CARD, name: "특수2", description: "특수 칸입니다", price: 0, rent: 0 },
+    { position: 88, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
     { position: 98, type: CellType.BIRTHDAY_FUND, name: "생일축하금", description: "생일축하금 칸입니다", price: 0, rent: 0 },
     { 
         position: 99, 
@@ -464,7 +464,7 @@ const gameCells = [
             hotel: 150
         }
     },
-    { position: 112, type: CellType.SPECIAL_CARD, name: "특수1", description: "특수 칸입니다", price: 0, rent: 0 },
+    { position: 112, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
     { 
         position: 113, 
         type: CellType.REGION, 
@@ -560,7 +560,7 @@ const gameCells = [
             hotel: 100
         }
     },
-    { position: 118, type: CellType.SPECIAL_CARD, name: "특수1", description: "특수 칸입니다", price: 0, rent: 0 },
+    { position: 118, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
     { 
         position: 119, 
         type: CellType.REGION, 
