@@ -33,6 +33,9 @@ let jumpSelectionPlayer = null;
 // 플레이어별 도시 구매 시점을 저장하는 배열 추가
 let cityPurchaseTurns = [];
 
+// 도시 소유자 정보를 저장하는 배열 추가
+let cityOwners = Array(121).fill(null);
+
 const CellType = {
     REGION: 'region',           // 지역
     ISLAND: 'island',           // 섬
@@ -627,6 +630,8 @@ document.getElementById('game-settings').addEventListener('submit', function(eve
     playerProperties = Array(selectedPlayerCount).fill([]);
     // 도시별 건물 정보 초기화
     cityBuildings = Array(121).fill({ pensions: 0, hotel: false });
+    // 도시 소유자 정보 초기화
+    cityOwners = Array(121).fill(null);
     // 도시 구매 시점 초기화
     cityPurchaseTurns = Array(121).fill(0);
     
@@ -984,8 +989,7 @@ function updateCityInfo(position) {
         }
 
         // 땅 구매/건물 건설 버튼 상태 업데이트
-        const currentPlayerProperties = playerProperties[currentPlayer - 1];
-        const isOwned = currentPlayerProperties.includes(position);
+        const isOwned = cityOwners[position] !== null;
         const isSpecialCell = city.price === 0;
         const buildings = cityBuildings[position];
         const isJustPurchased = cityPurchaseTurns[position] === currentPlayer;
@@ -996,8 +1000,8 @@ function updateCityInfo(position) {
                 buyPropertyButton.style.display = 'block';
                 buildingActions.style.display = 'none';
                 buyPropertyButton.disabled = playerFunds[currentPlayer - 1] < city.price;
-            } else {
-                // 건물 건설 버튼 표시
+            } else if (cityOwners[position] === currentPlayer) {
+                // 건물 건설 버튼 표시 (소유자인 경우)
                 buyPropertyButton.style.display = 'none';
                 buildingActions.style.display = 'flex';
                 
@@ -1012,6 +1016,10 @@ function updateCityInfo(position) {
                     // 호텔 건설 가능 여부
                     buildHotelButton.disabled = buildings.pensions < 4 || buildings.hotel || playerFunds[currentPlayer - 1] < city.price;
                 }
+            } else {
+                // 다른 플레이어의 땅인 경우
+                buyPropertyButton.style.display = 'none';
+                buildingActions.style.display = 'none';
             }
         } else {
             buyPropertyButton.style.display = 'none';
@@ -1086,6 +1094,20 @@ async function movePlayer(player, steps) {
     // 도시 정보 업데이트
     updateCityInfo(currentPosition);
     
+    // 다른 플레이어의 땅에 도착한 경우 임대료 지불
+    const city = gameCells.find(c => c.position === currentPosition);
+    if (city && cityOwners[currentPosition] !== null && cityOwners[currentPosition] !== player) {
+        const rent = calculateRent(currentPosition);
+        if (playerFunds[player - 1] >= rent) {
+            updatePlayerFunds(player, -rent);
+            updatePlayerFunds(cityOwners[currentPosition], rent);
+            alert(`플레이어 ${cityOwners[currentPosition]}님의 땅에 도착했습니다. 임대료 ${rent}만원을 지불했습니다.`);
+        } else {
+            alert(`임대료 ${rent}만원을 지불할 자금이 부족합니다. 파산했습니다!`);
+            // 게임 종료 처리 추가 필요
+        }
+    }
+    
     // 점프칸에 도달했을 때
     if (currentCell.classList.contains('corner-jump')) {
         const jumpCost = 10;
@@ -1140,8 +1162,8 @@ document.getElementById('buy-property').addEventListener('click', function() {
         if (confirm(`${city.name}을(를) ${city.price}만원에 구매하시겠습니까?`)) {
             updatePlayerFunds(currentPlayer, -city.price);
             playerProperties[currentPlayer - 1].push(currentPosition);
-            // 도시 구매 시점 저장
-            cityPurchaseTurns[currentPosition] = currentPlayer;
+            // 도시 소유자 정보 업데이트
+            cityOwners[currentPosition] = currentPlayer;
             updateCityInfo(currentPosition);
             alert(`${city.name}을(를) 구매했습니다!`);
         }
