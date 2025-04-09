@@ -26,6 +26,12 @@
                     <label for="initial-funds">초기 자금 (만원)</label>
                     <input type="number" id="initial-funds" value="200" min="100" step="10">
                 </div>
+                <div class="form-group">
+                    <label class="dev-mode-label">
+                        <input type="checkbox" id="dev-mode-toggle">
+                        개발자 모드
+                    </label>
+                </div>
                 <button type="submit">게임 시작</button>
             </form>
         </div>
@@ -42,6 +48,13 @@
                         <div class="dice-result">
                             <span id="dice1">0</span>
                             <span id="dice2">0</span>
+                        </div>
+                        <div id="dev-dice-input" class="hidden">
+                            <div class="dev-dice-controls">
+                                <input type="number" id="dev-dice1" min="1" max="6" value="1">
+                                <input type="number" id="dev-dice2" min="1" max="6" value="1">
+                                <button id="dev-roll-dice">주사위 적용</button>
+                            </div>
                         </div>
                         <div class="addition-problem-overlay hidden">
                             <div class="addition-problem">

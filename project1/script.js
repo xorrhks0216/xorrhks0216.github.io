@@ -8,6 +8,11 @@ const rollDiceButton = document.getElementById('roll-dice');
 const endTurnButton = document.getElementById('end-turn');
 let dice1 = document.getElementById('dice1');
 let dice2 = document.getElementById('dice2');
+const devModeToggle = document.getElementById('dev-mode-toggle');
+const devDiceInput = document.getElementById('dev-dice-input');
+const devDice1 = document.getElementById('dev-dice1');
+const devDice2 = document.getElementById('dev-dice2');
+const devRollDiceButton = document.getElementById('dev-roll-dice');
 
 // 테스트 플래그 제거
 let isTestMode = false;
@@ -643,43 +648,51 @@ function updateButtonStates(isDicePhase) {
     }
 }
 
-// 주사위 굴리기 함수 수정
-async function rollDice() {
-    // 주사위 요소 가져오기
-    const dice1Element = document.getElementById('dice1');
-    const dice2Element = document.getElementById('dice2');
+let isDevMode = false;
+
+// 개발자 모드 토글 이벤트 리스너
+devModeToggle.addEventListener('change', function() {
+    isDevMode = this.checked;
+    if (isDevMode) {
+        devDiceInput.classList.remove('hidden');
+    } else {
+        devDiceInput.classList.add('hidden');
+    }
+});
+
+// 개발자 모드 주사위 적용 버튼 이벤트 리스너
+devRollDiceButton.addEventListener('click', function() {
+    const dice1Value = parseInt(devDice1.value);
+    const dice2Value = parseInt(devDice2.value);
     
-    if (!dice1Element || !dice2Element) {
-        console.error('주사위 요소를 찾을 수 없습니다.');
+    if (dice1Value < 1 || dice1Value > 6 || dice2Value < 1 || dice2Value > 6) {
+        alert('주사위 값은 1부터 6 사이여야 합니다.');
         return;
     }
     
-    // 주사위 던지기 버튼 비활성화
-    rollDiceButton.disabled = true;
+    dice1.textContent = dice1Value;
+    dice2.textContent = dice2Value;
+    currentDiceSum = dice1Value + dice2Value;
     
-    // 일반 모드에서는 랜덤 주사위
-    const dice1Value = Math.floor(Math.random() * 6) + 1;
-    const dice2Value = Math.floor(Math.random() * 6) + 1;
-    
-    // 주사위 애니메이션
-    dice1Element.classList.add('rolling');
-    dice2Element.classList.add('rolling');
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // 주사위 결과 표시
-    dice1Element.textContent = dice1Value;
-    dice2Element.textContent = dice2Value;
-    
-    dice1Element.classList.remove('rolling');
-    dice2Element.classList.remove('rolling');
-    
-    // 게임이 시작된 후에만 덧셈 문제 표시
-    if (gameScreen.classList.contains('hidden') === false) {
+    showAdditionProblem(dice1Value, dice2Value);
+});
+
+// 주사위 굴리기 함수 수정
+async function rollDice() {
+    if (!isDiceRolled) {
+        if (isDevMode) {
+            devDiceInput.classList.remove('hidden');
+            return;
+        }
+        
+        const dice1Value = Math.floor(Math.random() * 6) + 1;
+        const dice2Value = Math.floor(Math.random() * 6) + 1;
+        
+        dice1.textContent = dice1Value;
+        dice2.textContent = dice2Value;
+        currentDiceSum = dice1Value + dice2Value;
+        
         showAdditionProblem(dice1Value, dice2Value);
-    } else {
-        // 게임 시작 전에는 바로 이동
-        movePlayer(currentPlayer, dice1Value + dice2Value);
     }
 }
 
