@@ -211,10 +211,10 @@ button:hover {
     border: 1px solid #333;
 }
 
-.player-piece-indicator[data-player="1"] { background-color: #FF6B6B; }
-.player-piece-indicator[data-player="2"] { background-color: #4ECDC4; }
-.player-piece-indicator[data-player="3"] { background-color: #45B7D1; }
-.player-piece-indicator[data-player="4"] { background-color: #96CEB4; }
+.player-piece-indicator[data-player="1"] { background-color: #FF0000; }
+.player-piece-indicator[data-player="2"] { background-color: #00FF00; }
+.player-piece-indicator[data-player="3"] { background-color: #0000FF; }
+.player-piece-indicator[data-player="4"] { background-color: #FFFF00; }
 
 .player-status.active {
     background-color: #e3f2fd;
@@ -307,6 +307,7 @@ button:hover {
     align-items: center;
     position: relative;
     background-color: #fff3cd;
+    opacity: 0.75;
 }
 
 /* 테두리 칸 스타일 */
@@ -319,6 +320,7 @@ button:hover {
 .board-cell:not(.border-cell) {
     background-color: transparent;
     border: none;
+    opacity: 0.75;
 }
 
 /* 이미지 회전을 위한 기본 스타일 */
@@ -332,6 +334,7 @@ button:hover {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+    opacity: 0.75;
 }
 
 /* 180도 회전 (1-10) */
@@ -431,10 +434,10 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.player-piece[data-player="1"] { background-color: #FF6B6B; }
-.player-piece[data-player="2"] { background-color: #4ECDC4; }
-.player-piece[data-player="3"] { background-color: #45B7D1; }
-.player-piece[data-player="4"] { background-color: #96CEB4; }
+.player-piece[data-player="1"] { background-color: #FF0000; }
+.player-piece[data-player="2"] { background-color: #00FF00; }
+.player-piece[data-player="3"] { background-color: #0000FF; }
+.player-piece[data-player="4"] { background-color: #FFFF00; }
 
 /* 주사위 관련 스타일 */
 .dice {
@@ -826,17 +829,21 @@ button:hover {
 
 /* 플레이어 소유 땅 테두리 스타일 */
 .board-cell.owned-by-player-1 {
-    border: 3px solid #FF6B6B;
+    border: 3px solid #FF0000;
+    box-shadow: 0 0 5px #FF0000;
 }
 
 .board-cell.owned-by-player-2 {
-    border: 3px solid #4ECDC4;
+    border: 3px solid #00FF00;
+    box-shadow: 0 0 5px #00FF00;
 }
 
 .board-cell.owned-by-player-3 {
-    border: 3px solid #45B7D1;
+    border: 3px solid #0000FF;
+    box-shadow: 0 0 5px #0000FF;
 }
 
 .board-cell.owned-by-player-4 {
-    border: 3px solid #96CEB4;
+    border: 3px solid #FFFF00;
+    box-shadow: 0 0 5px #FFFF00;
 } 
