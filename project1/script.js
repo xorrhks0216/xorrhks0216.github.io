@@ -1066,7 +1066,7 @@ function updatePlayerFunds(player, amount) {
 }
 
 // 플레이어 말 이동 함수
-async function movePlayer(player, steps) {
+async function movePlayer(player, steps, speed = 300) {
     let currentPosition = playerPositions[player - 1];
     const piece = playerPieces[player - 1];
     const startPosition = 120; // 출발칸 위치
@@ -1085,7 +1085,7 @@ async function movePlayer(player, steps) {
         
         // 말 이동 애니메이션
         piece.classList.add('moving');
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, speed));
         piece.classList.remove('moving');
         
         // 말 위치 업데이트
@@ -1096,7 +1096,7 @@ async function movePlayer(player, steps) {
         
         currentPosition = newPosition;
         currentCell = newCell;
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, speed / 3));
     }
     
     playerPositions[player - 1] = currentPosition;
@@ -1243,9 +1243,6 @@ function handleJumpSelection(cellIndex) {
         steps++;
     }
     
-    // 점프 선택 모드 종료
-    isJumpSelectionMode = false;
-    
     // 선택 가능한 칸 표시 제거
     document.querySelectorAll('.board-cell.selectable').forEach(cell => {
         cell.classList.remove('selectable');
@@ -1255,9 +1252,11 @@ function handleJumpSelection(cellIndex) {
     const overlay = document.querySelector('.jump-selection-overlay');
     if (overlay) overlay.remove();
     
-    // movePlayer 함수를 통해 이동
-    movePlayer(jumpSelectionPlayer, steps);
+    // movePlayer 함수를 통해 이동 (더 빠른 속도로)
+    movePlayer(jumpSelectionPlayer, steps, 100);
 
+    // 점프 선택 모드 종료
+    isJumpSelectionMode = false;
     jumpSelectionPlayer = null;
 }
 
