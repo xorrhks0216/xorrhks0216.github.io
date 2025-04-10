@@ -30,9 +30,6 @@ let cityBuildings = []; // 도시별 건물 정보를 저장하는 배열
 let isJumpSelectionMode = false;
 let jumpSelectionPlayer = null;
 
-// 플레이어별 도시 방문 횟수를 저장하는 2차원 배열 추가
-let cityVisitCounts = [];
-
 // 도시 소유자 정보를 저장하는 배열 추가
 let cityOwners = Array(121).fill(null);
 
@@ -632,8 +629,6 @@ document.getElementById('game-settings').addEventListener('submit', function(eve
     cityBuildings = Array(121).fill({ pensions: 0, hotel: false });
     // 도시 소유자 정보 초기화
     cityOwners = Array(121).fill(null);
-    // 플레이어별 도시 방문 횟수 초기화
-    cityVisitCounts = Array(selectedPlayerCount).fill().map(() => Array(121).fill(0));
     
     // 화면 전환
     gameSettingsScreen.classList.add('hidden');
@@ -1106,11 +1101,6 @@ async function movePlayer(player, steps) {
     
     playerPositions[player - 1] = currentPosition;
     
-    // 자신의 땅에 도착한 경우에만 방문 횟수 증가
-    if (cityOwners[currentPosition] === player) {
-        cityVisitCounts[player - 1][currentPosition]++;
-    }
-    
     // 출발점을 지나가거나 도착한 경우에만 월급 지급
     if (passedStartPoint || currentPosition === startPosition) {
         // 해당 플레이어가 아직 월급을 받지 않은 경우에만 지급
@@ -1195,9 +1185,6 @@ document.getElementById('buy-property').addEventListener('click', function() {
             // 도시 소유자 정보 업데이트
             cityOwners[currentPosition] = currentPlayer;
             
-            // 방문 횟수 1로 설정
-            cityVisitCounts[currentPlayer - 1][currentPosition] = 1;
-            
             // 셀 테두리 업데이트
             const cell = gameBoard.children[currentPosition];
             // 기존 소유자 클래스 제거
@@ -1246,45 +1233,32 @@ document.getElementById('build-hotel').addEventListener('click', function() {
 function handleJumpSelection(cellIndex) {
     if (!isJumpSelectionMode) return;
     
-    // 선택한 칸으로 직접 이동
-    const piece = playerPieces[jumpSelectionPlayer - 1];
-    const currentCell = gameBoard.children[playerPositions[jumpSelectionPlayer - 1]];
-    const newCell = gameBoard.children[cellIndex];
+    // 현재 위치에서 목표 위치까지의 칸 수 계산
+    const currentPosition = playerPositions[jumpSelectionPlayer - 1];
+    let steps = 0;
+    let position = currentPosition;
     
-    // 말 이동 애니메이션
-    piece.classList.add('moving');
-    setTimeout(() => {
-        piece.classList.remove('moving');
-        
-        // 말 위치 업데이트
-        currentCell.removeChild(piece);
-        newCell.appendChild(piece);
-        playerPositions[jumpSelectionPlayer - 1] = cellIndex;
-        
-        // 자신의 땅에 도착한 경우 방문 횟수 증가
-        if (cityOwners[cellIndex] === jumpSelectionPlayer) {
-            cityVisitCounts[jumpSelectionPlayer - 1][cellIndex]++;
-        }
-        
-        // 도시 정보 업데이트
-        updateCityInfo(cellIndex);
-        
-        // 점프 선택 모드 종료
-        isJumpSelectionMode = false;
-        jumpSelectionPlayer = null;
-        
-        // 선택 가능한 칸 표시 제거
-        document.querySelectorAll('.board-cell.selectable').forEach(cell => {
-            cell.classList.remove('selectable');
-        });
-        
-        // 오버레이 제거
-        const overlay = document.querySelector('.jump-selection-overlay');
-        if (overlay) overlay.remove();
-        
-        // 이동이 완료된 후 버튼 상태 변경
-        updateButtonStates(false);
-    }, 300);
+    while (position !== cellIndex) {
+        position = getNextPosition(position);
+        steps++;
+    }
+    
+    // 점프 선택 모드 종료
+    isJumpSelectionMode = false;
+    
+    // 선택 가능한 칸 표시 제거
+    document.querySelectorAll('.board-cell.selectable').forEach(cell => {
+        cell.classList.remove('selectable');
+    });
+    
+    // 오버레이 제거
+    const overlay = document.querySelector('.jump-selection-overlay');
+    if (overlay) overlay.remove();
+    
+    // movePlayer 함수를 통해 이동
+    movePlayer(jumpSelectionPlayer, steps);
+
+    jumpSelectionPlayer = null;
 }
 
 function showJumpSelection(player) {
