@@ -822,4 +822,21 @@ button:hover {
 
 #dev-roll-dice:hover {
     background-color: #45a049;
+}
+
+/* 플레이어 소유 땅 테두리 스타일 */
+.board-cell.owned-by-player-1 {
+    border: 3px solid #FF6B6B;
+}
+
+.board-cell.owned-by-player-2 {
+    border: 3px solid #4ECDC4;
+}
+
+.board-cell.owned-by-player-3 {
+    border: 3px solid #45B7D1;
+}
+
+.board-cell.owned-by-player-4 {
+    border: 3px solid #96CEB4;
 } 

@@ -774,7 +774,7 @@ function showAdditionProblem(dice1Value, dice2Value) {
                 additionProblemOverlay.classList.add('hidden');
                 // 이동 처리
                 movePlayer(currentPlayer, dice1Value + dice2Value);
-            }, 1000);
+            }, 200);
         } else {
             // 오답일 경우
             answerInput.style.color = '#f44336';
@@ -879,6 +879,11 @@ function createGameBoard() {
             case 117: cell.classList.add('brasilia'); break;
             case 118: cell.classList.add('special1'); break;
             case 119: cell.classList.add('santiago'); break;
+        }
+        
+        // 소유자 정보가 있는 경우 테두리 추가
+        if (cityOwners[i] !== null) {
+            cell.classList.add(`owned-by-player-${cityOwners[i]}`);
         }
         
         gameBoard.appendChild(cell);
@@ -1185,6 +1190,14 @@ document.getElementById('buy-property').addEventListener('click', function() {
             playerProperties[currentPlayer - 1].push(currentPosition);
             // 도시 소유자 정보 업데이트
             cityOwners[currentPosition] = currentPlayer;
+            
+            // 셀 테두리 업데이트
+            const cell = gameBoard.children[currentPosition];
+            // 기존 소유자 클래스 제거
+            cell.classList.remove('owned-by-player-1', 'owned-by-player-2', 'owned-by-player-3', 'owned-by-player-4');
+            // 새로운 소유자 클래스 추가
+            cell.classList.add(`owned-by-player-${currentPlayer}`);
+            
             updateCityInfo(currentPosition);
             alert(`${city.name}을(를) 구매했습니다!`);
         }
