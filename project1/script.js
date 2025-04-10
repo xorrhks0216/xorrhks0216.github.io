@@ -825,7 +825,9 @@ function createGameBoard() {
         const row = Math.floor(i / 11);
         const col = i % 11;
         if (row === 0 || row === 10 || col === 0 || col === 10) {
-            cell.classList.add('border-cell');
+            if (i !== 110) { // 110은 점프칸 위치
+                cell.classList.add('border-cell');
+            }
         }
         
         // 출발칸 설정 (오른쪽 아래)
@@ -1078,11 +1080,6 @@ async function movePlayer(player, steps, speed = 300) {
     for (let i = 0; i < steps; i++) {
         const newPosition = getNextPosition(currentPosition);
         
-        // 출발점을 지나가는지 체크
-        if (currentPosition > newPosition && currentPosition > startPosition) {
-            passedStartPoint = true;
-        }
-        
         // 말 이동 애니메이션
         piece.classList.add('moving');
         await new Promise(resolve => setTimeout(resolve, speed));
@@ -1097,19 +1094,18 @@ async function movePlayer(player, steps, speed = 300) {
         currentPosition = newPosition;
         currentCell = newCell;
         await new Promise(resolve => setTimeout(resolve, speed / 3));
+
+        // 출발점을 지나가거나 도착했는지 체크하고 월급 지급
+        if ((currentPosition > newPosition && currentPosition > startPosition) || newPosition === startPosition) {
+            if (!playerSalaryReceived[player - 1]) {
+                updatePlayerFunds(player, 80);
+                alert(`월급 80만원을 받았습니다!`);
+                playerSalaryReceived[player - 1] = true;
+            }
+        }
     }
     
     playerPositions[player - 1] = currentPosition;
-    
-    // 출발점을 지나가거나 도착한 경우에만 월급 지급
-    if (passedStartPoint || currentPosition === startPosition) {
-        // 해당 플레이어가 아직 월급을 받지 않은 경우에만 지급
-        if (!playerSalaryReceived[player - 1]) {
-            updatePlayerFunds(player, 80);
-            alert(`월급 80만원을 받았습니다!`);
-            playerSalaryReceived[player - 1] = true;
-        }
-    }
     
     // 도시 정보 업데이트
     updateCityInfo(currentPosition, true);
