@@ -30,8 +30,8 @@ let cityBuildings = []; // 도시별 건물 정보를 저장하는 배열
 let isJumpSelectionMode = false;
 let jumpSelectionPlayer = null;
 
-// 플레이어별 도시 구매 시점을 저장하는 배열 추가
-let cityPurchaseTurns = [];
+// 플레이어별 도시 방문 횟수를 저장하는 2차원 배열 추가
+let cityVisitCounts = [];
 
 // 도시 소유자 정보를 저장하는 배열 추가
 let cityOwners = Array(121).fill(null);
@@ -632,8 +632,8 @@ document.getElementById('game-settings').addEventListener('submit', function(eve
     cityBuildings = Array(121).fill({ pensions: 0, hotel: false });
     // 도시 소유자 정보 초기화
     cityOwners = Array(121).fill(null);
-    // 도시 구매 시점 초기화
-    cityPurchaseTurns = Array(121).fill(0);
+    // 플레이어별 도시 방문 횟수 초기화
+    cityVisitCounts = Array(selectedPlayerCount).fill().map(() => Array(121).fill(0));
     
     // 화면 전환
     gameSettingsScreen.classList.add('hidden');
@@ -1018,7 +1018,7 @@ function updateCityInfo(position) {
         const isOwned = cityOwners[position] !== null;
         const isSpecialCell = city.price === 0;
         const buildings = cityBuildings[position];
-        const isJustPurchased = cityPurchaseTurns[position] === currentPlayer;
+        const visitCount = cityVisitCounts[currentPlayer - 1][position];
         
         if (!isSpecialCell) {
             if (!isOwned) {
@@ -1031,8 +1031,8 @@ function updateCityInfo(position) {
                 buyPropertyButton.style.display = 'none';
                 buildingActions.style.display = 'flex';
                 
-                // 이번 턴에 구매한 도시인 경우 건물 건설 불가
-                if (isJustPurchased) {
+                // 방문 횟수가 2회 미만인 경우 건물 건설 불가
+                if (visitCount < 2) {
                     buildPensionButton.disabled = true;
                     buildHotelButton.disabled = true;
                 } else {
@@ -1106,6 +1106,11 @@ async function movePlayer(player, steps) {
     }
     
     playerPositions[player - 1] = currentPosition;
+    
+    // 자신의 땅에 도착한 경우에만 방문 횟수 증가
+    if (cityOwners[currentPosition] === player) {
+        cityVisitCounts[player - 1][currentPosition]++;
+    }
     
     // 출발점을 지나가거나 도착한 경우에만 월급 지급
     if (passedStartPoint || currentPosition === startPosition) {
@@ -1190,6 +1195,9 @@ document.getElementById('buy-property').addEventListener('click', function() {
             playerProperties[currentPlayer - 1].push(currentPosition);
             // 도시 소유자 정보 업데이트
             cityOwners[currentPosition] = currentPlayer;
+            
+            // 방문 횟수 1로 설정
+            cityVisitCounts[currentPlayer - 1][currentPosition] = 1;
             
             // 셀 테두리 업데이트
             const cell = gameBoard.children[currentPosition];
