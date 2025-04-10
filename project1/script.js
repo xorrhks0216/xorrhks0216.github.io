@@ -937,7 +937,7 @@ function updatePlayerTurn() {
 }
 
 // 도시 정보 업데이트 함수
-function updateCityInfo(position) {
+function updateCityInfo(position, checkBuildingEligibility = false) {
     const cityName = document.getElementById('city-name');
     const cityDescription = document.getElementById('city-description');
     const cityPrice = document.getElementById('city-price');
@@ -1018,7 +1018,6 @@ function updateCityInfo(position) {
         const isOwned = cityOwners[position] !== null;
         const isSpecialCell = city.price === 0;
         const buildings = cityBuildings[position];
-        const visitCount = cityVisitCounts[currentPlayer - 1][position];
         
         if (!isSpecialCell) {
             if (!isOwned) {
@@ -1031,16 +1030,16 @@ function updateCityInfo(position) {
                 buyPropertyButton.style.display = 'none';
                 buildingActions.style.display = 'flex';
                 
-                // 방문 횟수가 2회 미만인 경우 건물 건설 불가
-                if (visitCount < 2) {
-                    buildPensionButton.disabled = true;
-                    buildHotelButton.disabled = true;
-                } else {
+                if (checkBuildingEligibility) {
                     // 펜션 건설 가능 여부
-                    buildPensionButton.disabled = buildings.pensions >= 4 || playerFunds[currentPlayer - 1] < city.price * 0.5;
+                    buildPensionButton.disabled = buildings.pensions >= 4 || playerFunds[currentPlayer - 1] < city.buildingCost.pension;
                     
                     // 호텔 건설 가능 여부
-                    buildHotelButton.disabled = buildings.pensions < 4 || buildings.hotel || playerFunds[currentPlayer - 1] < city.price;
+                    buildHotelButton.disabled = buildings.pensions < 4 || buildings.hotel || playerFunds[currentPlayer - 1] < city.buildingCost.hotel;
+                } else {
+                    // 건물 건설 비활성화
+                    buildPensionButton.disabled = true;
+                    buildHotelButton.disabled = true;
                 }
             } else {
                 // 다른 플레이어의 땅인 경우
@@ -1123,7 +1122,7 @@ async function movePlayer(player, steps) {
     }
     
     // 도시 정보 업데이트
-    updateCityInfo(currentPosition);
+    updateCityInfo(currentPosition, true);
     
     // 다른 플레이어의 땅에 도착한 경우 임대료 지불
     const city = gameCells.find(c => c.position === currentPosition);
@@ -1218,9 +1217,9 @@ document.getElementById('build-pension').addEventListener('click', function() {
     const city = gameCells.find(c => c.position === currentPosition);
     const buildings = cityBuildings[currentPosition];
     
-    if (city && buildings.pensions < 4 && playerFunds[currentPlayer - 1] >= city.price * 0.5) {
-        if (confirm(`${city.name}에 펜션을 건설하시겠습니까? (비용: ${city.price * 0.5}만원)`)) {
-            updatePlayerFunds(currentPlayer, -city.price * 0.5);
+    if (city && buildings.pensions < 4 && playerFunds[currentPlayer - 1] >= city.buildingCost.pension) {
+        if (confirm(`${city.name}에 펜션을 건설하시겠습니까? (비용: ${city.buildingCost.pension}만원)`)) {
+            updatePlayerFunds(currentPlayer, -city.buildingCost.pension);
             buildings.pensions++;
             updateCityInfo(currentPosition);
             alert(`${city.name}에 펜션을 건설했습니다! (현재 펜션: ${buildings.pensions}개)`);
@@ -1234,9 +1233,9 @@ document.getElementById('build-hotel').addEventListener('click', function() {
     const city = gameCells.find(c => c.position === currentPosition);
     const buildings = cityBuildings[currentPosition];
     
-    if (city && buildings.pensions === 4 && !buildings.hotel && playerFunds[currentPlayer - 1] >= city.price) {
-        if (confirm(`${city.name}에 호텔을 건설하시겠습니까? (비용: ${city.price}만원)`)) {
-            updatePlayerFunds(currentPlayer, -city.price);
+    if (city && buildings.pensions === 4 && !buildings.hotel && playerFunds[currentPlayer - 1] >= city.buildingCost.hotel) {
+        if (confirm(`${city.name}에 호텔을 건설하시겠습니까? (비용: ${city.buildingCost.hotel}만원)`)) {
+            updatePlayerFunds(currentPlayer, -city.buildingCost.hotel);
             buildings.hotel = true;
             updateCityInfo(currentPosition);
             alert(`${city.name}에 호텔을 건설했습니다!`);
@@ -1261,6 +1260,11 @@ function handleJumpSelection(cellIndex) {
         currentCell.removeChild(piece);
         newCell.appendChild(piece);
         playerPositions[jumpSelectionPlayer - 1] = cellIndex;
+        
+        // 자신의 땅에 도착한 경우 방문 횟수 증가
+        if (cityOwners[cellIndex] === jumpSelectionPlayer) {
+            cityVisitCounts[jumpSelectionPlayer - 1][cellIndex]++;
+        }
         
         // 도시 정보 업데이트
         updateCityInfo(cellIndex);
