@@ -45,7 +45,7 @@ const CellType = {
 };
 
 const gameCells = [
-    { position: 0, type: CellType.DESERT_ISLAND, name: "무인도", description: "무인도에 도착했습니다" },
+    { position: 0, type: CellType.DESERT_ISLAND, name: "무인도", description: "무인도에 도착했습니다", image: 'images/muindo.jpg' },
     { 
         position: 1, 
         type: CellType.REGION, 
@@ -63,9 +63,10 @@ const gameCells = [
         buildingCost: {
             pension: 50,
             hotel: 280
-        }
+        },
+        image: 'images/lasvegas.jpg'
     },
-    { position: 2, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다." },
+    { position: 2, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", image: 'images/special1.jpg' },
     { 
         position: 3, 
         type: CellType.REGION, 
@@ -83,7 +84,8 @@ const gameCells = [
         buildingCost: {
             pension: 50,
             hotel: 280
-        }
+        },
+        image: 'images/moscow.jpg'
     },
     { 
         position: 4, 
@@ -102,7 +104,8 @@ const gameCells = [
         buildingCost: {
             pension: 50,
             hotel: 280
-        }
+        },
+        image: 'images/berlin.jpg'
     },
     { 
         position: 5, 
@@ -121,7 +124,8 @@ const gameCells = [
         buildingCost: {
             pension: 70,
             hotel: 210
-        }
+        },
+        image: 'images/hawaii.jpg'
     },
     { 
         position: 6, 
@@ -140,7 +144,8 @@ const gameCells = [
         buildingCost: {
             pension: 60,
             hotel: 320
-        }
+        },
+        image: 'images/hongkong.jpg'
     },
     { 
         position: 7, 
@@ -159,9 +164,10 @@ const gameCells = [
         buildingCost: {
             pension: 60,
             hotel: 320
-        }
+        },
+        image: 'images/tokyo.jpg'
     },
-    { position: 8, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
+    { position: 8, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0, image: 'images/special1.jpg' },
     { 
         position: 9, 
         type: CellType.REGION, 
@@ -179,9 +185,10 @@ const gameCells = [
         buildingCost: {
             pension: 60,
             hotel: 320
-        }
+        },
+        image: 'images/washington.jpg'
     },
-    { position: 10, type: CellType.BIRTHDAY_PARTY, name: "생일", description: "생일 칸입니다", price: 0, rent: 0 },
+    { position: 10, type: CellType.BIRTHDAY_PARTY, name: "생일", description: "생일 칸입니다", price: 0, rent: 0, image: 'images/birthday.jpg' },
     { 
         position: 11, 
         type: CellType.REGION, 
@@ -199,7 +206,8 @@ const gameCells = [
         buildingCost: {
             pension: 45,
             hotel: 240
-        }
+        },
+        image: 'images/stockholm.jpg'
     },
     { 
         position: 21, 
@@ -218,10 +226,11 @@ const gameCells = [
         buildingCost: {
             pension: 70,
             hotel: 360
-        }
+        },
+        image: 'images/paris.jpg'
     },
-    { position: 22, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
-    { position: 32, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
+    { position: 22, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0, image: 'images/special2.jpg' },
+    { position: 32, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0, image: 'images/special2.jpg' },
     { 
         position: 33, 
         type: CellType.REGION, 
@@ -239,7 +248,8 @@ const gameCells = [
         buildingCost: {
             pension: 45,
             hotel: 240
-        }
+        },
+        image: 'images/copenhagen.jpg'
     },
     { 
         position: 43, 
@@ -258,7 +268,8 @@ const gameCells = [
         buildingCost: {
             pension: 70,
             hotel: 360
-        }
+        },
+        image: 'images/rome.jpg'
     },
     { 
         position: 44, 
@@ -277,7 +288,8 @@ const gameCells = [
         buildingCost: {
             pension: 45,
             hotel: 240
-        }
+        },
+        image: 'images/helsinki.jpg'
     },
     { 
         position: 54, 
@@ -296,7 +308,8 @@ const gameCells = [
         buildingCost: {
             pension: 70,
             hotel: 360
-        }
+        },
+        image: 'images/london.jpg'
     },
     { 
         position: 55, 
@@ -315,7 +328,8 @@ const gameCells = [
         buildingCost: {
             pension: 65,
             hotel: 195
-        }
+        },
+        image: 'images/saipan.jpg'
     },
     { 
         position: 65, 
@@ -334,7 +348,8 @@ const gameCells = [
         buildingCost: {
             pension: 60,
             hotel: 180
-        }
+        },
+        image: 'images/dokdo.jpg'
     },
     { 
         position: 66, 
@@ -353,7 +368,8 @@ const gameCells = [
         buildingCost: {
             pension: 40,
             hotel: 200
-        }
+        },
+        image: 'images/beijing.jpg'
     },
     { 
         position: 76, 
@@ -372,7 +388,8 @@ const gameCells = [
         buildingCost: {
             pension: 80,
             hotel: 400
-        }
+        },
+        image: 'images/new_york.jpg'
     },
     { 
         position: 77, 
@@ -391,7 +408,8 @@ const gameCells = [
         buildingCost: {
             pension: 40,
             hotel: 200
-        }
+        },
+        image: 'images/singapore.jpg'
     },
     { 
         position: 87, 
@@ -410,10 +428,11 @@ const gameCells = [
         buildingCost: {
             pension: 80,
             hotel: 400
-        }
+        },
+        image: 'images/busan.jpg'
     },
-    { position: 88, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
-    { position: 98, type: CellType.BIRTHDAY_FUND, name: "생일축하금", description: "생일축하금 칸입니다", price: 0, rent: 0 },
+    { position: 88, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0, image: 'images/special2.jpg' },
+    { position: 98, type: CellType.BIRTHDAY_FUND, name: "생일축하금", description: "생일축하금 칸입니다", price: 0, rent: 0, image: 'images/pay_birthday.jpg' },
     { 
         position: 99, 
         type: CellType.REGION, 
@@ -431,7 +450,8 @@ const gameCells = [
         buildingCost: {
             pension: 40,
             hotel: 200
-        }
+        },
+        image: 'images/bangkok.jpg'
     },
     { 
         position: 109, 
@@ -450,9 +470,10 @@ const gameCells = [
         buildingCost: {
             pension: 80,
             hotel: 400
-        }
+        },
+        image: 'images/seoul.jpg'
     },
-    { position: 110, type: CellType.JUMP, name: "코너점프", description: "코너점프 칸입니다", price: 0, rent: 0 },
+    { position: 110, type: CellType.JUMP, name: "코너점프", description: "코너점프 칸입니다", price: 0, rent: 0, image: 'images/corner_jump.jpg' },
     { 
         position: 111, 
         type: CellType.REGION, 
@@ -470,9 +491,10 @@ const gameCells = [
         buildingCost: {
             pension: 30,
             hotel: 150
-        }
+        },
+        image: 'images/tripoli.jpg'
     },
-    { position: 112, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
+    { position: 112, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0, image: 'images/special1.jpg' },
     { 
         position: 113, 
         type: CellType.REGION, 
@@ -490,7 +512,8 @@ const gameCells = [
         buildingCost: {
             pension: 30,
             hotel: 150
-        }
+        },
+        image: 'images/warszawa.jpg'
     },
     { 
         position: 114, 
@@ -509,7 +532,8 @@ const gameCells = [
         buildingCost: {
             pension: 30,
             hotel: 150
-        }
+        },
+        image: 'images/cairo.jpg'
     },
     { 
         position: 115, 
@@ -528,7 +552,8 @@ const gameCells = [
         buildingCost: {
             pension: 70,
             hotel: 210
-        }
+        },
+        image: 'images/guam.jpg'
     },
     { 
         position: 116, 
@@ -547,7 +572,8 @@ const gameCells = [
         buildingCost: {
             pension: 20,
             hotel: 100
-        }
+        },
+        image: 'images/mexico_city.jpg'
     },
     { 
         position: 117, 
@@ -566,9 +592,10 @@ const gameCells = [
         buildingCost: {
             pension: 20,
             hotel: 100
-        }
+        },
+        image: 'images/brasilia.jpg'
     },
-    { position: 118, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0 },
+    { position: 118, type: CellType.SPECIAL_CARD, name: "스페셜 카드", description: "스페셜 카드를 한장 뽑습니다.", price: 0, rent: 0, image: 'images/special1.jpg' },
     { 
         position: 119, 
         type: CellType.REGION, 
@@ -586,9 +613,10 @@ const gameCells = [
         buildingCost: {
             pension: 20,
             hotel: 100
-        }
+        },
+        image: 'images/santiago.jpg'
     },
-    { position: 120, type: CellType.START, name: "출발점", description: "게임의 출발점입니다", price: 0, rent: 0 }
+    { position: 120, type: CellType.START, name: "출발점", description: "게임의 출발점입니다", price: 0, rent: 0, image: 'images/start.jpg' }
 ];
 
 // 플레이어 수 버튼 이벤트 리스너
@@ -913,6 +941,7 @@ function createPlayerInfo(initialFunds) {
                 <div>플레이어 ${i}</div>
             </div>
             <div>자금: <span class="player-funds">${initialFunds}</span>만원</div>
+            <div class="player-owned-properties"></div>
         `;
         playerInfo.appendChild(playerStatus);
     }
@@ -958,50 +987,7 @@ function updateCityInfo(position, checkBuildingEligibility = false) {
         cityRent.textContent = `${calculateRent(position)}만원`;
         
         // 도시 이미지 설정
-        let imagePath = '';
-        switch(position) {
-            case 0: imagePath = 'images/muindo.jpg'; break;
-            case 1: imagePath = 'images/lasvegas.jpg'; break;
-            case 2: imagePath = 'images/special1.jpg'; break;
-            case 3: imagePath = 'images/moscow.jpg'; break;
-            case 4: imagePath = 'images/berlin.jpg'; break;
-            case 5: imagePath = 'images/hawaii.jpg'; break;
-            case 6: imagePath = 'images/hongkong.jpg'; break;
-            case 7: imagePath = 'images/tokyo.jpg'; break;
-            case 8: imagePath = 'images/special1.jpg'; break;
-            case 9: imagePath = 'images/washington.jpg'; break;
-            case 10: imagePath = 'images/birthday.jpg'; break;
-            case 11: imagePath = 'images/stockholm.jpg'; break;
-            case 21: imagePath = 'images/paris.jpg'; break;
-            case 22: imagePath = 'images/special2.jpg'; break;
-            case 32: imagePath = 'images/special2.jpg'; break;
-            case 33: imagePath = 'images/copenhagen.jpg'; break;
-            case 43: imagePath = 'images/rome.jpg'; break;
-            case 44: imagePath = 'images/helsinki.jpg'; break;
-            case 54: imagePath = 'images/london.jpg'; break;
-            case 55: imagePath = 'images/saipan.jpg'; break;
-            case 65: imagePath = 'images/dokdo.jpg'; break;
-            case 66: imagePath = 'images/beijing.jpg'; break;
-            case 76: imagePath = 'images/new_york.jpg'; break;
-            case 77: imagePath = 'images/singapore.jpg'; break;
-            case 87: imagePath = 'images/busan.jpg'; break;
-            case 88: imagePath = 'images/special2.jpg'; break;
-            case 98: imagePath = 'images/pay_birthday.jpg'; break;
-            case 99: imagePath = 'images/bangkok.jpg'; break;
-            case 109: imagePath = 'images/seoul.jpg'; break;
-            case 110: imagePath = 'images/corner_jump.jpg'; break;
-            case 111: imagePath = 'images/tripoli.jpg'; break;
-            case 112: imagePath = 'images/special1.jpg'; break;
-            case 113: imagePath = 'images/warszawa.jpg'; break;
-            case 114: imagePath = 'images/cairo.jpg'; break;
-            case 115: imagePath = 'images/guam.jpg'; break;
-            case 116: imagePath = 'images/mexico_city.jpg'; break;
-            case 117: imagePath = 'images/brasilia.jpg'; break;
-            case 118: imagePath = 'images/special1.jpg'; break;
-            case 119: imagePath = 'images/santiago.jpg'; break;
-            case 120: imagePath = 'images/start.jpg'; break;
-            default: imagePath = '';
-        }
+        let imagePath = city.image;
         
         if (imagePath) {
             locationImage.style.backgroundImage = `url(${imagePath})`;
@@ -1190,6 +1176,7 @@ document.getElementById('buy-property').addEventListener('click', function() {
             
             updateCityInfo(currentPosition);
             alert(`${city.name}을(를) 구매했습니다!`);
+            updatePlayerPropertiesDisplay();
         }
     }
 });
@@ -1206,6 +1193,7 @@ document.getElementById('build-pension').addEventListener('click', function() {
             buildings.pensions++;
             updateCityInfo(currentPosition);
             alert(`${city.name}에 펜션을 건설했습니다! (현재 펜션: ${buildings.pensions}개)`);
+            updatePlayerPropertiesDisplay();
         }
     }
 });
@@ -1222,6 +1210,7 @@ document.getElementById('build-hotel').addEventListener('click', function() {
             buildings.hotel = true;
             updateCityInfo(currentPosition);
             alert(`${city.name}에 호텔을 건설했습니다!`);
+            updatePlayerPropertiesDisplay();
         }
     }
 });
@@ -1314,4 +1303,83 @@ function calculateRent(position) {
         case 4: return cell.rent.pension4;
         default: return cell.rent.base;
     }
+}
+
+// 소유 도시/섬 이미지 업데이트 함수
+function updatePlayerPropertiesDisplay() {
+    const playerStatuses = document.querySelectorAll('.player-status');
+    
+    playerStatuses.forEach((status, playerIndex) => {
+        const propertiesContainer = status.querySelector('.player-owned-properties');
+        propertiesContainer.innerHTML = '';
+        
+        // 해당 플레이어가 소유한 도시/섬 찾기
+        cityOwners.forEach((owner, position) => {
+            if (owner === playerIndex + 1) {
+                const city = gameCells.find(c => c.position === position);
+                if (city) {
+                    const thumbnail = document.createElement('img');
+                    thumbnail.className = `property-thumbnail owned-by-player-${playerIndex + 1}`;
+                    thumbnail.src = city.image;
+                    thumbnail.alt = city.name;
+                    thumbnail.dataset.position = position;
+                    thumbnail.addEventListener('click', () => showPropertyBuildings(position));
+                    propertiesContainer.appendChild(thumbnail);
+                }
+            }
+        });
+    });
+}
+
+// 건물 현황 모달 표시 함수
+function showPropertyBuildings(position) {
+    const city = gameCells.find(c => c.position === position);
+    const buildings = cityBuildings[position] || { pensions: 0, hotel: false };
+    const modal = document.getElementById('property-buildings-modal');
+    const modalTitle = document.getElementById('modal-property-name');
+    const buildingsList = document.querySelector('.property-buildings-list');
+    
+    modalTitle.textContent = city.name;
+    buildingsList.innerHTML = '';
+    
+    // 펜션 현황 표시
+    for (let i = 0; i < buildings.pensions; i++) {
+        const pensionItem = document.createElement('div');
+        pensionItem.className = 'property-building-item';
+        pensionItem.innerHTML = `
+            <div class="property-building-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <div>펜션 ${i + 1}</div>
+        `;
+        buildingsList.appendChild(pensionItem);
+    }
+    
+    // 호텔 현황 표시
+    if (buildings.hotel) {
+        const hotelItem = document.createElement('div');
+        hotelItem.className = 'property-building-item';
+        hotelItem.innerHTML = `
+            <div class="property-building-icon">
+                <i class="fas fa-hotel"></i>
+            </div>
+            <div>호텔</div>
+        `;
+        buildingsList.appendChild(hotelItem);
+    }
+    
+    modal.classList.add('active');
+    
+    // 모달 닫기 버튼 이벤트
+    const closeButton = modal.querySelector('.close-modal');
+    closeButton.onclick = () => {
+        modal.classList.remove('active');
+    };
+    
+    // 모달 외부 클릭 시 닫기
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    };
 }
