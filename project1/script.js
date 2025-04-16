@@ -715,8 +715,17 @@ devModeToggle.addEventListener('change', function() {
     isDevMode = this.checked;
     if (isDevMode) {
         devDiceInput.classList.remove('hidden');
+        document.getElementById('dev-jump').classList.remove('hidden');
     } else {
         devDiceInput.classList.add('hidden');
+        document.getElementById('dev-jump').classList.add('hidden');
+    }
+});
+
+// 개발자 모드 점프 버튼 이벤트 리스너
+document.getElementById('dev-jump').addEventListener('click', function() {
+    if (isDevMode) {
+        showJumpSelection(currentPlayer);
     }
 });
 
