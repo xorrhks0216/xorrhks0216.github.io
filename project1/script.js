@@ -1279,6 +1279,10 @@ function showJumpSelection(player) {
     isJumpSelectionMode = true;
     jumpSelectionPlayer = player;
     
+    // 게임 보드의 위치와 크기 계산
+    const gameBoard = document.querySelector('.game-board');
+    const boardRect = gameBoard.getBoundingClientRect();
+    
     // 오버레이 생성
     const overlay = document.createElement('div');
     overlay.className = 'jump-selection-overlay';
@@ -1288,6 +1292,13 @@ function showJumpSelection(player) {
             <p>플레이어 ${player}님, 점프할 칸을 선택해주세요.</p>
         </div>
     `;
+    
+    // 오버레이를 게임 보드의 중앙에 배치
+    overlay.style.position = 'absolute';
+    overlay.style.left = `${boardRect.left + boardRect.width / 2}px`;
+    overlay.style.top = `${boardRect.top + boardRect.height / 2}px`;
+    overlay.style.transform = 'translate(-50%, -50%)';
+    
     document.body.appendChild(overlay);
     
     // 테두리 칸만 선택 가능하게 만들고 클릭 이벤트 추가
