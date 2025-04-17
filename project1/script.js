@@ -1020,8 +1020,24 @@ function updateCityInfo(position, checkBuildingEligibility = false) {
     if (city) {
         cityName.textContent = city.name;
         cityDescription.textContent = city.description;
-        cityPrice.textContent = `${city.price}만원`;
-        cityRent.textContent = `${calculateRent(position)}만원`;
+        
+        // 특수 칸 타입 체크
+        const isSpecialType = city.type === CellType.START || 
+                            city.type === CellType.JUMP || 
+                            city.type === CellType.SPECIAL_CARD || 
+                            city.type === CellType.DESERT_ISLAND || 
+                            city.type === CellType.BIRTHDAY_PARTY || 
+                            city.type === CellType.BIRTHDAY_FUND;
+        
+        if (!isSpecialType) {
+            cityPrice.textContent = `${city.price}만원`;
+            cityRent.textContent = `${calculateRent(position)}만원`;
+            cityPrice.parentElement.style.display = 'block';
+            cityRent.parentElement.style.display = 'block';
+        } else {
+            cityPrice.parentElement.style.display = 'none';
+            cityRent.parentElement.style.display = 'none';
+        }
         
         // 도시 이미지 설정
         let imagePath = city.image;
@@ -1039,7 +1055,7 @@ function updateCityInfo(position, checkBuildingEligibility = false) {
         const isSpecialCell = city.price === 0;
         const buildings = cityBuildings[position];
         
-        if (!isSpecialCell) {
+        if (!isSpecialCell && !isSpecialType) {
             if (!isOwned) {
                 // 땅 구매 버튼 표시
                 buyPropertyButton.style.display = 'block';
