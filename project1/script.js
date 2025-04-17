@@ -29,6 +29,8 @@ let playerProperties = []; // 플레이어별 소유 도시 정보를 저장하�
 let cityBuildings = []; // 도시별 건물 정보를 저장하는 배열
 let isJumpSelectionMode = false;
 let jumpSelectionPlayer = null;
+let playerDesertIslandTurns = []; // 플레이어별 무인도 턴 수를 저장하는 배열
+let playerIsInDesertIsland = []; // 플레이어별 무인도 상태를 저장하는 배열
 
 // 도시 소유자 정보를 저장하는 배열 추가
 let cityOwners = Array(121).fill(null);
@@ -681,10 +683,13 @@ document.getElementById('game-settings').addEventListener('submit', function(eve
     playerSalaryReceived = Array(selectedPlayerCount).fill(false);
     // 플레이어별 소유 도시 초기화
     playerProperties = Array(selectedPlayerCount).fill([]);
-    // 도시별 건물 정보 초기화 - 각 도시마다 독립적인 건물 정보를 가지도록 수정
+    // 도시별 건물 정보 초기화
     cityBuildings = Array(121).fill(null).map(() => ({ pensions: 0, hotel: false }));
     // 도시 소유자 정보 초기화
     cityOwners = Array(121).fill(null);
+    // 무인도 관련 변수 초기화
+    playerDesertIslandTurns = Array(selectedPlayerCount).fill(0);
+    playerIsInDesertIsland = Array(selectedPlayerCount).fill(false);
     
     // 화면 전환
     gameSettingsScreen.classList.add('hidden');
@@ -782,7 +787,28 @@ async function rollDice() {
         dice1Element.classList.remove('rolling');
         dice2Element.classList.remove('rolling');
         
-        showAdditionProblem(dice1Value, dice2Value);
+        // 무인도에 있는 경우 탈출 조건 체크
+        if (playerIsInDesertIsland[currentPlayer - 1]) {
+            if (dice1Value === dice2Value) {
+                alert('주사위가 같은 숫자가 나와 무인도에서 탈출했습니다!');
+                playerIsInDesertIsland[currentPlayer - 1] = false;
+                playerDesertIslandTurns[currentPlayer - 1] = 0;
+                movePlayer(currentPlayer, currentDiceSum);
+            } else {
+                playerDesertIslandTurns[currentPlayer - 1]++;
+                if (playerDesertIslandTurns[currentPlayer - 1] >= 3) {
+                    alert('3턴이 지나 자동으로 무인도에서 탈출합니다!');
+                    playerIsInDesertIsland[currentPlayer - 1] = false;
+                    playerDesertIslandTurns[currentPlayer - 1] = 0;
+                    movePlayer(currentPlayer, currentDiceSum);
+                } else {
+                    alert(`무인도에서 ${playerDesertIslandTurns[currentPlayer - 1]}턴째 대기 중입니다.`);
+                    updateButtonStates(false);
+                }
+            }
+        } else {
+            showAdditionProblem(dice1Value, dice2Value);
+        }
     }
 }
 
@@ -1106,7 +1132,7 @@ function updatePlayerFunds(player, amount) {
     fundsElement.textContent = playerFunds[player - 1];
 }
 
-// 플레이어 말 이동 함수
+// 플레이어 말 이동 함수 수정
 async function movePlayer(player, steps, speed = 300) {
     let currentPosition = playerPositions[player - 1];
     const piece = playerPieces[player - 1];
@@ -1148,6 +1174,15 @@ async function movePlayer(player, steps, speed = 300) {
     
     // 도시 정보 업데이트
     updateCityInfo(currentPosition, true);
+    
+    // 무인도에 도착한 경우
+    if (currentCell.classList.contains('muindo')) {
+        playerIsInDesertIsland[player - 1] = true;
+        playerDesertIslandTurns[player - 1] = 0;
+        alert('무인도에 도착했습니다! 3턴 동안 머물거나 주사위가 같은 숫자가 나올 때까지 기다려야 합니다.');
+        updateButtonStates(false);
+        return;
+    }
     
     // 다른 플레이어의 땅에 도착한 경우 임대료 지불
     const city = gameCells.find(c => c.position === currentPosition);
