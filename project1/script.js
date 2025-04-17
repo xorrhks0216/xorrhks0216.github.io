@@ -784,6 +784,8 @@ async function rollDice() {
         dice2.textContent = dice2Value;
         currentDiceSum = dice1Value + dice2Value;
 
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         dice1Element.classList.remove('rolling');
         dice2Element.classList.remove('rolling');
         
