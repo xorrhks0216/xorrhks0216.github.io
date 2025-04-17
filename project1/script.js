@@ -1374,12 +1374,22 @@ function updatePlayerPropertiesDisplay() {
                     propertyItem.className = 'property-item';
                     
                     // 도시/섬 썸네일
-                    const thumbnail = document.createElement('img');
+                    const thumbnail = document.createElement('div');
                     thumbnail.className = `property-thumbnail owned-by-player-${playerIndex + 1}`;
-                    thumbnail.src = city.image;
-                    thumbnail.alt = city.name;
-                    thumbnail.dataset.position = position;
-                    thumbnail.addEventListener('click', () => showPropertyBuildings(position));
+                    
+                    const thumbnailImg = document.createElement('img');
+                    thumbnailImg.src = city.image;
+                    thumbnailImg.alt = city.name;
+                    thumbnailImg.dataset.position = position;
+                    thumbnailImg.addEventListener('click', () => showPropertyBuildings(position));
+                    
+                    // 도시 이름 오버레이
+                    const cityName = document.createElement('div');
+                    cityName.className = 'city-name';
+                    cityName.textContent = city.name;
+                    
+                    thumbnail.appendChild(thumbnailImg);
+                    thumbnail.appendChild(cityName);
                     
                     // 건물 정보 표시
                     const buildingInfo = document.createElement('div');
@@ -1415,11 +1425,19 @@ function showPropertyBuildings(position) {
     const city = gameCells.find(c => c.position === position);
     const buildings = cityBuildings[position] || { pensions: 0, hotel: false };
     const modal = document.getElementById('property-buildings-modal');
-    const modalTitle = document.getElementById('modal-property-name');
-    const buildingsList = document.querySelector('.property-buildings-list');
     
-    modalTitle.textContent = city.name;
-    buildingsList.innerHTML = '';
+    // 모달 내용을 비우고 새로운 레이아웃으로 구성
+    modal.innerHTML = `
+        <button class="close-modal">&times;</button>
+        <h3 id="modal-property-name">${city.name}</h3>
+        <div class="property-images-container">
+            <img src="${city.image}" alt="${city.name}" class="property-city-image">
+            <img src="${city.image_info}" alt="${city.name} 정보" class="property-info-image">
+        </div>
+        <div class="property-buildings-list"></div>
+    `;
+    
+    const buildingsList = modal.querySelector('.property-buildings-list');
     
     // 펜션 현황 표시
     for (let i = 0; i < buildings.pensions; i++) {
