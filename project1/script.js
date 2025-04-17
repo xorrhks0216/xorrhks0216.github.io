@@ -754,10 +754,10 @@ devRollDiceButton.addEventListener('click', function() {
 // 주사위 굴리기 함수 수정
 async function rollDice() {
     if (!isDiceRolled) {
-        if (isDevMode) {
-            devDiceInput.classList.remove('hidden');
-            return;
-        }
+        // if (isDevMode) {
+        //     devDiceInput.classList.remove('hidden');
+        //     return;
+        // }
 
         // 주사위 요소 가져오기
         const dice1Element = document.getElementById('dice1');
@@ -797,10 +797,10 @@ async function rollDice() {
             } else {
                 playerDesertIslandTurns[currentPlayer - 1]++;
                 if (playerDesertIslandTurns[currentPlayer - 1] >= 3) {
-                    alert('3턴이 지나 자동으로 무인도에서 탈출합니다!');
+                    alert('3턴이 지나 자동으로 다음턴에 무인도에서 탈출합니다!');
                     playerIsInDesertIsland[currentPlayer - 1] = false;
                     playerDesertIslandTurns[currentPlayer - 1] = 0;
-                    movePlayer(currentPlayer, currentDiceSum);
+                    updateButtonStates(false);
                 } else {
                     alert(`무인도에서 ${playerDesertIslandTurns[currentPlayer - 1]}턴째 대기 중입니다.`);
                     updateButtonStates(false);
