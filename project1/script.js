@@ -31,6 +31,7 @@ let isJumpSelectionMode = false;
 let jumpSelectionPlayer = null;
 let playerDesertIslandTurns = []; // 플레이어별 무인도 턴 수를 저장하는 배열
 let playerIsInDesertIsland = []; // 플레이어별 무인도 상태를 저장하는 배열
+let birthdayFund = 0; // 생일 파티 기금을 저장하는 변수
 
 // 도시 소유자 정보를 저장하는 배열 추가
 let cityOwners = Array(121).fill(null);
@@ -1184,6 +1185,28 @@ async function movePlayer(player, steps, speed = 300) {
         alert('무인도에 도착했습니다! 3턴 동안 머물거나 주사위가 같은 숫자가 나올 때까지 기다려야 합니다.');
         updateButtonStates(false);
         return;
+    }
+
+    // 생일 파티 기금 모금 칸에 도착한 경우
+    if (currentCell.classList.contains('pay-birthday')) {
+        if (playerFunds[player - 1] >= 30) {
+            updatePlayerFunds(player, -30);
+            birthdayFund += 30;
+            alert(`생일 파티 기금에 30만원을 기부했습니다! (현재 기금: ${birthdayFund}만원)`);
+        } else {
+            alert('자금이 부족하여 기부할 수 없습니다.');
+        }
+    }
+
+    // 생일 파티 칸에 도착한 경우
+    if (currentCell.classList.contains('birthday')) {
+        if (birthdayFund > 0) {
+            updatePlayerFunds(player, birthdayFund);
+            alert(`생일 파티 기금 ${birthdayFund}만원을 받았습니다!`);
+            birthdayFund = 0;
+        } else {
+            alert('현재 생일 파티 기금이 없습니다.');
+        }
     }
     
     // 다른 플레이어의 땅에 도착한 경우 임대료 지불
