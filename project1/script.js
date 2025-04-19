@@ -1785,14 +1785,11 @@ function renderSpecialCardsList() {
 
 // 스페셜 카드 토글
 function toggleSpecialCards() {
-    const container = document.getElementById('special-cards-container');
-    const list = document.querySelector('.special-cards-list');
+    const specialCardsList = document.querySelector('.special-cards-list');
+    const toggleButton = document.getElementById('toggle-special-cards');
     
-    if (list.classList.contains('hidden')) {
-        list.classList.remove('hidden');
-    } else {
-        list.classList.add('hidden');
-    }
+    specialCardsList.classList.toggle('hidden');
+    toggleButton.classList.toggle('active');
 }
 
 // 게임 시작 시 스페셜 카드 컨테이너 표시
