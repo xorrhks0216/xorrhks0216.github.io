@@ -650,6 +650,190 @@ const gameCells = [
     { position: 120, type: CellType.START, name: "출발점", description: "게임의 출발점입니다", image: 'images/start.jpg', image_info: null }
 ];
 
+// 스페셜 카드 정보 정의
+const specialCards = [
+    {
+        id: 1,
+        name: "아르바이트",
+        image: "images/special/special_info_1.jpg",
+        description: "아르바이트로 거리 청소를 했다. 26만원을 받는다."
+    },
+    {
+        id: 2,
+        name: "세무조사",
+        image: "images/special/special_info_2.jpg",
+        description: "가지고 있는 호텔 하나당 50만원 펜션 하나당 10만원을 재산세로 은행에 낸다."
+    },
+    {
+        id: 3,
+        name: "신혼 여행",
+        image: "images/special/special_info_3.jpg",
+        description: "원하는 섬으로 신혼여행을 떠난다. 출발칸을 지나게 되면 월급 80만원을 받는다다."
+    },
+    {
+        id: 4,
+        name: "휴식이 필요하다!",
+        image: "images/special/special_info_4.jpg",
+        description: "무인도로 이동한다."
+    },
+    {
+        id: 5,
+        name: "주가 폭락",
+        image: "images/special/special_info_5.jpg",
+        description: "가지고 있는 권리증서 한장당 10만원씩 은행에 지불한다. 권리증서가 없으면 지불하지 않아도 된다."
+    },
+    {
+        id: 6,
+        name: "앞으로 10칸 전진!",
+        image: "images/special/special_info_6.jpg",
+        description: "출발칸을 지나면 월급 80만원을 받는다."
+    },
+    {
+        id: 7,
+        name: "출발칸으로 전진",
+        image: "images/special/special_info_7.jpg",
+        description: "출발칸으로 전진하여 월급 80만원을 받는다."
+    },
+    {
+        id: 8,
+        name: "눈썰매장을 갔다.",
+        image: "images/special/special_info_8.jpg",
+        description: "애인과 함께 눈썰매장을 갔다. 42만원을 은행에 지불한다."
+    },
+    {
+        id: 9,
+        name: "독도관광",
+        image: "images/special/special_info_9.jpg",
+        description: "독도로 관광을 간다. 출발칸을 지나게 되면 월급 80만원을 받는다."
+    },
+    {
+        id: 10,
+        name: "도시구매권",
+        image: "images/special/special_info_10.jpg",
+        description: "원하는 도시 1개를 해당 가격을 지불하고 바로 구매할 수 있다. 바로 사용하여야 하며 필요 없을시에는 반납한다."
+    },
+    {
+        id: 11,
+        name: "복권 당첨!",
+        image: "images/special/special_info_11.jpg",
+        description: "100만원을 은행으로 부터 받는다."
+    },
+    {
+        id: 12,
+        name: "불우이웃돕기",
+        image: "images/special/special_info_12.jpg",
+        description: "경기불황으로 어려운 이웃들이 많다. 모든 게임자들에게 20만원씩을 준다."
+    },
+    {
+        id: 13,
+        name: "사이판 관광광",
+        image: "images/special/special_info_13.jpg",
+        description: "사이판으로 관광을 간다. 출발칸을 지나게 되면 월급 80만원을 받는다."
+    },
+    {
+        id: 14,
+        name: "호텔 분양 당첨",
+        image: "images/special/special_info_14.jpg",
+        description: "호텔 1개를 50만원에 분양 받을 수 있습니다. 분양금 지불 후 자신의 도시에 지을 수 있습니다. 필요 없으면 분양권을 다른게임자에게 흥정하여 팔 수 있습니다."
+    },
+    {
+        id: 15,
+        name: "생일파티",
+        image: "images/special/special_info_15.jpg",
+        description: "생일 파티칸으로 이동한다. 출발칸을 지나게 되면 월급 80만원을 받는다."
+    },
+    {
+        id: 16,
+        name: "관광 예약 폭주",
+        image: "images/special/special_info_16.jpg",
+        description: "본인이 섬을 가지고 있다면 섬 하나당 60만원씩 은행으로 부터 수익금으로 받는다."
+    },
+    {
+        id: 17,
+        name: "생일파티 기부금",
+        image: "images/special/special_info_17.jpg",
+        description: "생일파티 칸에 30만원을 기부한다."
+    },
+    {
+        id: 18,
+        name: "무인도 탈출카드",
+        image: "images/special/special_info_18.jpg",
+        description: "이 카드를 가지고 있다가 무인도에 갇혔을 경우 이카드를 내면 쉬지않고 다음 차례에 나올 수 있다. 다음 게임자에게 흥정하여 팔 수도 있다."
+    },
+    {
+        id: 19,
+        name: "주가 상승",
+        image: "images/special/special_info_19.jpg",
+        description: "가지고 있는 권리증서 한장당 10만원씩을 은행으로 부터 받는다. 권리증서가 없으면 80만원을 받는다."
+    },
+    {
+        id: 20,
+        name: "무사 통행권",
+        image: "images/special/special_info_20.jpg",
+        description: "본 카드를 가지고 있다가 다른 게임자의 도시에 들어갔을때 통행료를 내지 않고 통과할 수 있다. 단, 한번 사용하면 반납한다."
+    },
+    {
+        id: 21,
+        name: "적금만기",
+        image: "images/special/special_info_21.jpg",
+        description: "축하드립니다. 그동안의 적금이 만기가 되었다. 100만원을 은행으로 부터 받는다."
+    },
+    {
+        id: 22,
+        name: "주사",
+        image: "images/special/special_info_22.jpg",
+        description: "스페셜 카드 22의 설명입니다."
+    },
+    {
+        id: 23,
+        name: "스페셜 카드 23",
+        image: "images/special/special_info_23.jpg",
+        description: "스페셜 카드 23의 설명입니다."
+    },
+    {
+        id: 24,
+        name: "스페셜 카드 24",
+        image: "images/special/special_info_24.jpg",
+        description: "스페셜 카드 24의 설명입니다."
+    },
+    {
+        id: 25,
+        name: "스페셜 카드 25",
+        image: "images/special/special_info_25.jpg",
+        description: "스페셜 카드 25의 설명입니다."
+    },
+    {
+        id: 26,
+        name: "스페셜 카드 26",
+        image: "images/special/special_info_26.jpg",
+        description: "스페셜 카드 26의 설명입니다."
+    },
+    {
+        id: 27,
+        name: "스페셜 카드 27",
+        image: "images/special/special_info_27.jpg",
+        description: "스페셜 카드 27의 설명입니다."
+    },
+    {
+        id: 28,
+        name: "스페셜 카드 28",
+        image: "images/special/special_info_28.jpg",
+        description: "스페셜 카드 28의 설명입니다."
+    },
+    {
+        id: 29,
+        name: "스페셜 카드 29",
+        image: "images/special/special_info_29.jpg",
+        description: "스페셜 카드 29의 설명입니다."
+    },
+    {
+        id: 30,
+        name: "스페셜 카드 30",
+        image: "images/special/special_info_30.jpg",
+        description: "스페셜 카드 30의 설명입니다."
+    }
+];
+
 // 플레이어 수 버튼 이벤트 리스너
 document.querySelectorAll('.player-button').forEach(button => {
     button.addEventListener('click', function() {
