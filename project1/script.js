@@ -882,6 +882,9 @@ document.getElementById('game-settings').addEventListener('submit', function(eve
     
     // 첫 번째 플레이어의 턴 시작
     startPlayerTurn();
+    
+    // 스페셜 카드 컨테이너 표시
+    showSpecialCardsContainer();
 });
 
 // 버튼 상태 관리 함수
@@ -1762,3 +1765,69 @@ function updateBirthdayFundDisplay() {
         }
     }
 }
+
+// 스페셜 카드 리스트 렌더링
+function renderSpecialCardsList() {
+    const container = document.querySelector('.special-cards-list');
+    container.innerHTML = ''; // 리스트 초기화
+    
+    specialCards.forEach(card => {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'special-card';
+        cardElement.innerHTML = `<img src="${card.image}" alt="${card.name}">`;
+        
+        // 클릭 이벤트 추가
+        cardElement.addEventListener('click', () => showCardModal(card));
+        
+        container.appendChild(cardElement);
+    });
+}
+
+// 스페셜 카드 토글
+function toggleSpecialCards() {
+    const container = document.getElementById('special-cards-container');
+    const list = document.querySelector('.special-cards-list');
+    
+    if (list.classList.contains('hidden')) {
+        list.classList.remove('hidden');
+    } else {
+        list.classList.add('hidden');
+    }
+}
+
+// 게임 시작 시 스페셜 카드 컨테이너 표시
+function showSpecialCardsContainer() {
+    const container = document.getElementById('special-cards-container');
+    container.classList.add('visible');
+    renderSpecialCardsList();
+}
+
+// 카드 모달 표시
+function showCardModal(card) {
+    const modal = document.getElementById('card-modal');
+    const modalImg = document.getElementById('modal-img');
+    const modalCaption = document.getElementById('modal-caption');
+    
+    modal.style.display = "block";
+    modalImg.src = card.image;
+    modalCaption.innerHTML = `<h3>${card.name}</h3><p>${card.description}</p>`;
+    
+    // 모달 닫기 버튼
+    const closeBtn = document.querySelector('.close-modal');
+    closeBtn.onclick = () => modal.style.display = "none";
+    
+    // 모달 외부 클릭 시 닫기
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    };
+}
+
+// 페이지 로드 시 스페셜 카드 리스트 렌더링
+document.addEventListener('DOMContentLoaded', () => {
+    renderSpecialCardsList();
+});
+
+// 토글 버튼 이벤트 리스너
+document.getElementById('toggle-special-cards').addEventListener('click', toggleSpecialCards);
