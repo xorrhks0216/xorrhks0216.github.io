@@ -780,57 +780,57 @@ const specialCards = [
     },
     {
         id: 22,
-        name: "주사",
+        name: "주사위 게임",
         image: "images/special/special_info_22.jpg",
-        description: "스페셜 카드 22의 설명입니다."
+        description: "주사위를 던져 짝수가 나오면 100만원을 받고 홀수가 나오면 50만원을 은행에 지불한다. 본게임은 하기 싫으면 하지 않아도 된다."
     },
     {
         id: 23,
-        name: "스페셜 카드 23",
+        name: "결혼",
         image: "images/special/special_info_23.jpg",
-        description: "스페셜 카드 23의 설명입니다."
+        description: "모든 게임자들에게 결혼 축하금으로 30만원씩 받는다."
     },
     {
         id: 24,
-        name: "스페셜 카드 24",
+        name: "하와이관광",
         image: "images/special/special_info_24.jpg",
-        description: "스페셜 카드 24의 설명입니다."
+        description: "하와이로 관광을 간다. 출발칸을 지나게 되면 월급 80만원을 받는다."
     },
     {
         id: 25,
-        name: "스페셜 카드 25",
+        name: "태풍피해 발생",
         image: "images/special/special_info_25.jpg",
-        description: "스페셜 카드 25의 설명입니다."
+        description: "본인이 섬을 가지고 있다면 섬하나당 30만원식 피해 복구금으로 은행에 지불한다."
     },
     {
         id: 26,
-        name: "스페셜 카드 26",
+        name: "과태로",
         image: "images/special/special_info_26.jpg",
-        description: "스페셜 카드 26의 설명입니다."
+        description: "야밤에 고성방가로 과태료 35만원을 은행에 지불한다."
     },
     {
         id: 27,
-        name: "스페셜 카드 27",
+        name: "장기자랑대회",
         image: "images/special/special_info_27.jpg",
-        description: "스페셜 카드 27의 설명입니다."
+        description: "장기자랑대회에서 읜기상을 받았다. 상금 80만원을 받는다."
     },
     {
         id: 28,
-        name: "스페셜 카드 28",
+        name: "펜션 분양 당첨",
         image: "images/special/special_info_28.jpg",
-        description: "스페셜 카드 28의 설명입니다."
+        description: "펜션 1개를 5만원에 분양 받을 수 있습니다. 분양금 지불 후 원하는 자신의 도시에 바로 지을 수 있습니다. 필요 없으면 분양권을 다른게임자에게 흥정하여 팔 수 있습니다."
     },
     {
         id: 29,
-        name: "스페셜 카드 29",
+        name: "다쳤다!",
         image: "images/special/special_info_29.jpg",
-        description: "스페셜 카드 29의 설명입니다."
+        description: "병원 치료비로 34만원을 은행에 지불한다."
     },
     {
         id: 30,
-        name: "스페셜 카드 30",
+        name: "보너스 300% 지급",
         image: "images/special/special_info_30.jpg",
-        description: "스페셜 카드 30의 설명입니다."
+        description: "가지고 있다가 출발칸을 지날때 내면 월급을 세배로 받는다. 단, 출발칸을 지날때 내지 않고 지나치면 바로 소멸된다. 소멸된 카드는 반납한다."
     }
 ];
 
