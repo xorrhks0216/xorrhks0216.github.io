@@ -1104,6 +1104,7 @@ button:hover {
     width: 80px;
     cursor: pointer;
     transition: transform 0.2s;
+    position: relative;
 }
 
 .special-card:hover {
@@ -1115,6 +1116,22 @@ button:hover {
     height: auto;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.special-card .card-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 10px;
+    padding: 2px 4px;
+    text-align: center;
+    border-radius: 0 0 5px 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* 모달 스타일 */

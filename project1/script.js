@@ -1774,7 +1774,10 @@ function renderSpecialCardsList() {
     specialCards.forEach(card => {
         const cardElement = document.createElement('div');
         cardElement.className = 'special-card';
-        cardElement.innerHTML = `<img src="${card.image}" alt="${card.name}">`;
+        cardElement.innerHTML = `
+            <img src="${card.image}" alt="${card.name}">
+            <div class="card-name">${card.name}</div>
+        `;
         
         // 클릭 이벤트 추가
         cardElement.addEventListener('click', () => showCardModal(card));
