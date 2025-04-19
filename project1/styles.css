@@ -1017,4 +1017,21 @@ button:hover {
     object-fit: contain;
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 생일 파티 기금 표시 스타일 */
+.birthday-fund-display {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    color: #333;
+    display: none;
+}
+
+.birthday-fund-display.visible {
+    display: block;
 } 

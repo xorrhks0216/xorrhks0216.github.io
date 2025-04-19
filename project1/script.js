@@ -941,7 +941,15 @@ function createGameBoard() {
             case 7: cell.classList.add('tokyo'); break;
             case 8: cell.classList.add('special1'); break;
             case 9: cell.classList.add('washington'); break;
-            case 10: cell.classList.add('birthday'); break;
+            case 10: {
+                cell.classList.add('birthday');
+                // 생일 파티 기금 표시 요소 추가
+                const fundDisplay = document.createElement('div');
+                fundDisplay.className = 'birthday-fund-display';
+                fundDisplay.textContent = `기금: ${birthdayFund}만원`;
+                cell.appendChild(fundDisplay);
+                break;
+            }
             case 11: cell.classList.add('stockholm'); break;
             case 21: cell.classList.add('paris'); break;
             case 22: cell.classList.add('special2'); break;
@@ -1193,6 +1201,7 @@ async function movePlayer(player, steps, speed = 300) {
             updatePlayerFunds(player, -30);
             birthdayFund += 30;
             alert(`생일 파티 기금에 30만원을 기부했습니다! (현재 기금: ${birthdayFund}만원)`);
+            updateBirthdayFundDisplay();
         } else {
             alert('자금이 부족하여 기부할 수 없습니다.');
         }
@@ -1204,6 +1213,7 @@ async function movePlayer(player, steps, speed = 300) {
             updatePlayerFunds(player, birthdayFund);
             alert(`생일 파티 기금 ${birthdayFund}만원을 받았습니다!`);
             birthdayFund = 0;
+            updateBirthdayFundDisplay();
         } else {
             alert('현재 생일 파티 기금이 없습니다.');
         }
@@ -1555,4 +1565,16 @@ function showPropertyBuildings(position) {
             modal.classList.remove('active');
         }
     };
+}
+
+// 생일 파티 기금 업데이트 함수
+function updateBirthdayFundDisplay() {
+    const birthdayCell = document.querySelector('.board-cell.birthday');
+    if (birthdayCell) {
+        const fundDisplay = birthdayCell.querySelector('.birthday-fund-display');
+        if (fundDisplay) {
+            fundDisplay.textContent = `기금: ${birthdayFund}만원`;
+            fundDisplay.classList.toggle('visible', birthdayFund > 0);
+        }
+    }
 }
