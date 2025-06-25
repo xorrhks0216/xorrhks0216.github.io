@@ -20,6 +20,7 @@
             --background-color: #f5f6fa;
             --text-color: #2c3e50;
             --card-background: #ffffff;
+            --hover-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
         }
 
         * {
@@ -32,98 +33,220 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: var(--text-color);
-            background-color: var(--background-color);
-            padding: 2rem;
+            background: linear-gradient(135deg, #f5f6fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 1rem;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 0 1rem;
         }
 
         header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
         }
 
         h1 {
             color: var(--primary-color);
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
         }
 
         .description {
             color: var(--text-color);
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
             max-width: 600px;
             margin: 0 auto;
-        }
-
-        .ad-container {
-            background-color: var(--card-background);
-            padding: 1rem;
-            border-radius: 10px;
-            margin: 2rem 0;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .ad-label {
-            font-size: 0.8rem;
-            color: var(--secondary-color);
-            margin-bottom: 0.5rem;
+            opacity: 0.8;
         }
 
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }
 
         .project-card {
-            background-color: var(--card-background);
-            border-radius: 10px;
+            background: var(--card-background);
+            border-radius: 15px;
             padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
             color: inherit;
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary-color), #9b59b6);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
 
         .project-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .project-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .project-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .project-card:hover img {
+            transform: scale(1.02);
         }
 
         .project-card h2 {
             color: var(--primary-color);
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            font-weight: 600;
         }
 
         .project-card p {
             color: var(--text-color);
             margin-bottom: 1rem;
+            font-size: clamp(0.85rem, 2vw, 0.95rem);
+            line-height: 1.5;
         }
 
         .project-card .date {
             color: var(--secondary-color);
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+            font-weight: 500;
         }
 
         footer {
             text-align: center;
             margin-top: 3rem;
-            padding: 2rem 0;
+            padding: 1.5rem 0;
             color: var(--text-color);
+            opacity: 0.7;
+            font-size: clamp(0.8rem, 1.8vw, 0.9rem);
         }
 
+        /* 모바일 최적화 */
         @media (max-width: 768px) {
             body {
-                padding: 1rem;
+                padding: 0.5rem;
+            }
+
+            .container {
+                padding: 0 0.5rem;
+            }
+
+            header {
+                margin-bottom: 1.5rem;
+                padding: 0.5rem 0;
             }
 
             .projects-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
+                margin-top: 1rem;
+            }
+
+            .project-card {
+                padding: 1.25rem;
+                display: flex;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .project-card img {
+                width: 80px;
+                height: 80px;
+                flex-shrink: 0;
+                margin-bottom: 0;
+            }
+
+            .project-content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .project-card h2 {
+                margin-bottom: 0.5rem;
+                font-size: 1.1rem;
+            }
+
+            .project-card p {
+                margin-bottom: 0.5rem;
+                font-size: 0.85rem;
+            }
+
+            .project-card .date {
+                font-size: 0.8rem;
+                margin-top: auto;
+            }
+
+            footer {
+                margin-top: 2rem;
+                padding: 1rem 0;
+            }
+        }
+
+        /* 태블릿 최적화 */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .projects-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 큰 화면 최적화 */
+        @media (min-width: 1025px) {
+            .projects-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* 접근성 개선 */
+        @media (prefers-reduced-motion: reduce) {
+            .project-card {
+                transition: none;
+            }
+            
+            .project-card:hover {
+                transform: none;
+            }
+        }
+
+        /* 다크모드 지원 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #3498db;
+                --secondary-color: #e74c3c;
+                --background-color: #1a1a1a;
+                --text-color: #ffffff;
+                --card-background: #2c2c2c;
+            }
+
+            body {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
             }
         }
     </style>
@@ -135,29 +258,14 @@
             <p class="description">여러 프로젝트들을 모아둔 페이지입니다. 각 프로젝트를 클릭하여 자세한 내용을 확인할 수 있습니다.</p>
         </header>
 
-        <!-- 상단 광고 -->
-        <div class="ad-container">
-            <div class="ad-label">Advertisement</div>
-            <!-- Google AdSense 광고 코드를 여기에 넣으세요 -->
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8474786523576292"
-                crossorigin="anonymous"></script>
-            <!-- 광고 단위 -->
-            <ins class="adsbygoogle"
-                style="display:block"
-                data-ad-client="ca-pub-8474786523576292"
-                data-ad-slot="9008021669"
-                data-ad-format="auto"
-                data-full-width-responsive="true"></ins>
-            <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-        </div>
-
         <div class="projects-grid">
             <a href="project1/index.html" class="project-card">
-                <h2>프로젝트 1</h2>
-                <p>프로젝트 1에 대한 간단한 설명이 들어가는 곳입니다.</p>
-                <p class="date">2024.03.01</p>
+                <img src="project1/images/corner_jump.jpg" alt="아이와 함께하는 부루마블 게임 스크린샷">
+                <div class="project-content">
+                    <h2>아이와 함께하는 부루마블</h2>
+                    <p>주사위를 굴려 덧셈 문제를 풀며 게임과 학습을 동시에! 아이들이 재미있게 수학을 배울 수 있는 교육용 부루마블 게임입니다.</p>
+                    <p class="date">2024.03.01</p>
+                </div>
             </a>
 
             <a href="project2/index.html" class="project-card">
@@ -171,24 +279,6 @@
                 <p>프로젝트 3에 대한 간단한 설명이 들어가는 곳입니다.</p>
                 <p class="date">2024.04.01</p>
             </a>
-        </div>
-
-        <!-- 하단 광고 -->
-        <div class="ad-container">
-            <div class="ad-label">Advertisement</div>
-            <!-- Google AdSense 광고 코드를 여기에 넣으세요 -->
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
-                crossorigin="anonymous"></script>
-            <!-- 광고 단위 -->
-            <ins class="adsbygoogle"
-                style="display:block"
-                data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-                data-ad-slot="XXXXXXXXXX"
-                data-ad-format="auto"
-                data-full-width-responsive="true"></ins>
-            <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
         </div>
 
         <footer>
