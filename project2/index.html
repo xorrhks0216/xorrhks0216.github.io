@@ -3,14 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프로젝트 2</title>
+    <title>주식 조건 검색 시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --background-color: #f5f6fa;
-            --text-color: #2c3e50;
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --accent-color: #4299e1;
+            --success-color: #38a169;
+            --warning-color: #d69e2e;
+            --danger-color: #e53e3e;
+            --background-color: #f7fafc;
             --card-background: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -20,98 +30,739 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
-            color: var(--text-color);
+            color: var(--text-primary);
             background-color: var(--background-color);
-            padding: 2rem;
+            font-size: 14px;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 1rem;
         }
 
-        .back-button {
-            display: inline-block;
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
             margin-bottom: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header h1 {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            text-align: center;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        /* Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-background);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .card-header i {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
             color: var(--secondary-color);
+        }
+
+        .card-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             text-decoration: none;
-            font-weight: bold;
         }
 
-        .back-button:hover {
-            text-decoration: underline;
+        .btn i {
+            margin-right: 0.5rem;
         }
 
-        .project-header {
-            margin-bottom: 2rem;
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
         }
 
-        .project-header h1 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
+        .btn-primary:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
         }
 
-        .project-header .date {
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #2f855a;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #b7791f;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c53030;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--secondary-color);
             color: var(--secondary-color);
-            margin-bottom: 1rem;
         }
 
-        .project-content {
-            background-color: var(--card-background);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .btn-outline:hover {
+            background-color: var(--secondary-color);
+            color: white;
         }
 
-        .project-content h2 {
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        /* Condition List */
+        .condition-item {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .condition-item:hover {
+            border-color: var(--accent-color);
+            background-color: white;
+        }
+
+        .condition-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .condition-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .condition-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .condition-details {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Results */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .result-symbol {
+            font-weight: 700;
+            font-size: 1.1rem;
             color: var(--primary-color);
-            margin: 1.5rem 0 1rem;
+            margin-bottom: 0.5rem;
         }
 
-        .project-content p {
-            margin-bottom: 1rem;
+        .result-name {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
         }
 
-        .project-content ul {
-            margin-left: 2rem;
+        .result-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        /* Performance Analysis */
+        .performance-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
             margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .performance-summary h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .performance-summary p {
+            opacity: 0.9;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Share Section */
+        .share-section {
+            grid-column: 1 / -1;
+        }
+
+        .url-display {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background-color: #f0fff4;
+            color: var(--success-color);
+            border: 1px solid #c6f6d5;
+        }
+
+        .status-warning {
+            background-color: #fffaf0;
+            color: var(--warning-color);
+            border: 1px solid #fed7aa;
+        }
+
+        .status-danger {
+            background-color: #fff5f5;
+            color: var(--danger-color);
+            border: 1px solid #fed7d7;
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
-            body {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .card {
                 padding: 1rem;
             }
+            
+            .performance-metrics {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
         }
+
+        @media (max-width: 480px) {
+            .header {
+                margin-bottom: 1rem;
+            }
+            
+            .main-grid {
+                gap: 1rem;
+            }
+            
+            .card {
+                padding: 0.75rem;
+            }
+            
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+            
+            .performance-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .hidden { display: none; }
+        .flex { display: flex; }
+        .flex-between { justify-content: space-between; }
+        .flex-center { justify-content: center; }
+        .align-center { align-items: center; }
+        .gap-1 { gap: 0.5rem; }
+        .gap-2 { gap: 1rem; }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="../index.html" class="back-button">← 메인으로 돌아가기</a>
-
-        <div class="project-header">
-            <h1>프로젝트 2</h1>
-            <p class="date">2024.03.15</p>
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> 주식 조건 검색 시스템</h1>
+            <p>미국/한국 주식의 기술적 조건을 설정하고 검색하여 투자 아이디어를 발굴하세요</p>
         </div>
 
-        <div class="project-content">
-            <h2>프로젝트 개요</h2>
-            <p>이 프로젝트는 예시 프로젝트입니다. 실제 프로젝트 내용을 여기에 작성하시면 됩니다.</p>
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- 조건 추가 섹션 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-plus-circle"></i>
+                    <h2>조건 추가</h2>
+                </div>
+                
+                <form id="condition-form">
+                    <div class="form-group">
+                        <label for="market-select">시장 선택</label>
+                        <select id="market-select" class="form-control">
+                            <option value="both">미국 + 한국 주식</option>
+                            <option value="us">미국 주식만</option>
+                            <option value="kr">한국 주식만</option>
+                        </select>
+                    </div>
 
-            <h2>주요 기능</h2>
-            <ul>
-                <li>기능 1</li>
-                <li>기능 2</li>
-                <li>기능 3</li>
-            </ul>
+                    <div class="form-group">
+                        <label for="condition-type">조건 유형</label>
+                        <select id="condition-type" class="form-control">
+                            <option value="price">가격 변화율</option>
+                            <option value="stochastic">Stochastic Slow</option>
+                            <option value="rsi">RSI</option>
+                        </select>
+                    </div>
 
-            <h2>사용 기술</h2>
-            <p>HTML, CSS, JavaScript 등 프로젝트에서 사용한 기술들을 나열합니다.</p>
+                    <!-- 가격 변화율 조건 -->
+                    <div id="price-condition" class="condition-details-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="price-type">가격 유형</label>
+                                <select id="price-type" class="form-control">
+                                    <option value="close">종가</option>
+                                    <option value="open">시가</option>
+                                    <option value="high">고가</option>
+                                    <option value="low">저가</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="days-ago">N일 전</label>
+                                <input type="number" id="days-ago" class="form-control" value="1" min="1" max="30">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="change-percent">변화율 (%)</label>
+                                <input type="number" id="change-percent" class="form-control" value="5" min="0" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label for="change-direction">방향</label>
+                                <select id="change-direction" class="form-control">
+                                    <option value="up">상승</option>
+                                    <option value="down">하락</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
 
-            <h2>프로젝트 결과</h2>
-            <p>프로젝트를 통해 달성한 결과나 성과를 설명합니다.</p>
+                    <!-- Stochastic 조건 -->
+                    <div id="stochastic-condition" class="condition-details-form hidden">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="stoch-days">N일 전</label>
+                                <input type="number" id="stoch-days" class="form-control" value="1" min="1" max="30">
+                            </div>
+                            <div class="form-group">
+                                <label for="stoch-comparison">비교 조건</label>
+                                <select id="stoch-comparison" class="form-control">
+                                    <option value="gt">큰</option>
+                                    <option value="gte">크거나 같은</option>
+                                    <option value="eq">같은</option>
+                                    <option value="lte">작거나 같은</option>
+                                    <option value="lt">작은</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RSI 조건 -->
+                    <div id="rsi-condition" class="condition-details-form hidden">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="rsi-days">N일 전</label>
+                                <input type="number" id="rsi-days" class="form-control" value="1" min="1" max="30">
+                            </div>
+                            <div class="form-group">
+                                <label for="rsi-comparison">비교 조건</label>
+                                <select id="rsi-comparison" class="form-control">
+                                    <option value="gt">큰</option>
+                                    <option value="gte">크거나 같은</option>
+                                    <option value="eq">같은</option>
+                                    <option value="lte">작거나 같은</option>
+                                    <option value="lt">작은</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> 조건 추가
+                    </button>
+                </form>
+            </div>
+
+            <!-- 조건 목록 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-list"></i>
+                    <h2>설정된 조건 목록</h2>
+                </div>
+                
+                <div id="conditions-list">
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>설정된 조건이 없습니다</h3>
+                        <p>왼쪽에서 조건을 추가해보세요</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-1 mt-2">
+                    <button id="clear-conditions" class="btn btn-outline btn-sm">
+                        <i class="fas fa-trash"></i> 전체 삭제
+                    </button>
+                    <button id="search-stocks" class="btn btn-success btn-sm" disabled>
+                        <i class="fas fa-search"></i> 실시간 검색
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 검색 결과 섹션 -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-bar"></i>
+                <h2>검색 결과</h2>
+                <div class="flex align-center gap-1">
+                    <span class="status-indicator status-warning">
+                        <i class="fas fa-clock"></i> 대기중
+                    </span>
+                </div>
+            </div>
+            
+            <div id="search-results">
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <h3>검색을 실행해주세요</h3>
+                    <p>조건을 설정한 후 "실시간 검색" 버튼을 눌러주세요</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 성과 검증 & 공유 섹션 -->
+        <div class="main-grid">
+            <!-- 성과 검증 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-analytics"></i>
+                    <h2>성과 검증</h2>
+                </div>
+
+                <div class="form-group">
+                    <label for="backtest-period">검증 기간</label>
+                    <select id="backtest-period" class="form-control">
+                        <option value="1m">최근 1개월</option>
+                        <option value="3m">최근 3개월</option>
+                        <option value="6m">최근 6개월</option>
+                        <option value="1y">최근 1년</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="holding-days">보유 일수</label>
+                    <input type="number" id="holding-days" class="form-control" value="5" min="1" max="30">
+                </div>
+
+                <button id="run-backtest" class="btn btn-warning">
+                    <i class="fas fa-play"></i> 성과 검증 실행
+                </button>
+
+                <div id="performance-results" class="mt-2 hidden">
+                    <div class="performance-summary">
+                        <h3 id="total-return">+0.00%</h3>
+                        <p>총 수익률</p>
+                    </div>
+                    
+                    <div class="performance-metrics">
+                        <div class="metric-item">
+                            <div class="metric-value" id="win-rate">0%</div>
+                            <div class="metric-label">승률</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" id="avg-return">0%</div>
+                            <div class="metric-label">평균 수익률</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" id="max-drawdown">0%</div>
+                            <div class="metric-label">최대 낙폭</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" id="total-trades">0</div>
+                            <div class="metric-label">총 거래 수</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 공유 기능 -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-share-alt"></i>
+                    <h2>조건 공유</h2>
+                </div>
+
+                <p class="mb-2">현재 설정된 조건들을 URL로 공유할 수 있습니다.</p>
+
+                <div class="form-group">
+                    <label>공유 URL</label>
+                    <div class="url-display" id="share-url">
+                        조건을 추가하면 공유 URL이 생성됩니다
+                    </div>
+                </div>
+
+                <div class="flex gap-1">
+                    <button id="copy-url" class="btn btn-primary btn-sm">
+                        <i class="fas fa-copy"></i> URL 복사
+                    </button>
+                    <button id="update-url" class="btn btn-outline btn-sm">
+                        <i class="fas fa-refresh"></i> URL 갱신
+                    </button>
+                </div>
+
+                <div class="form-group mt-2">
+                    <label for="import-url">URL에서 조건 불러오기</label>
+                    <div class="flex gap-1">
+                        <input type="url" id="import-url" class="form-control" placeholder="공유받은 URL을 입력하세요">
+                        <button id="load-from-url" class="btn btn-success">
+                            <i class="fas fa-download"></i> 불러오기
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script src="script.js"></script>
 </body>
 </html> 
