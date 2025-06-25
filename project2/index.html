@@ -493,6 +493,310 @@
             }
         }
 
+        /* Search Progress Styles */
+        .search-progress {
+            padding: 2rem;
+        }
+
+        .progress-header {
+            margin-bottom: 2rem;
+        }
+
+        .progress-header h3 {
+            margin: 0 0 1rem 0;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .progress-stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .progress-stats span {
+            padding: 0.25rem 0.75rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .progress-stats .processed {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        .progress-stats .found {
+            background: linear-gradient(135deg, #38a169 0%, #2d8659 100%);
+            color: white;
+            border: none;
+        }
+
+        .progress-stats .percentage {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+            border: none;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: var(--card-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #38a169, #48bb78, #68d391);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            animation: progress-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes progress-glow {
+            from { box-shadow: 0 0 5px rgba(56, 161, 105, 0.5); }
+            to { box-shadow: 0 0 20px rgba(56, 161, 105, 0.8); }
+        }
+
+        .progress-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .progress-details div {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .preliminary-results {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(56, 161, 105, 0.1), rgba(72, 187, 120, 0.05));
+            border: 1px solid rgba(56, 161, 105, 0.2);
+            border-radius: 12px;
+        }
+
+        .preliminary-results h4 {
+            margin: 0 0 1rem 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .result-item.preliminary {
+            border: 2px solid rgba(56, 161, 105, 0.3);
+            animation: found-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes found-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 2px 10px rgba(56, 161, 105, 0.1); }
+            50% { transform: scale(1.02); box-shadow: 0 4px 20px rgba(56, 161, 105, 0.2); }
+        }
+
+        /* Enhanced Result Styles */
+        .search-results-summary {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.05));
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .results-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.3rem;
+        }
+
+        .results-count {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .results-count span {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .total-count {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .us-count {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+        }
+
+        .kr-count {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            color: white;
+        }
+
+        .results-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .market-section {
+            margin-bottom: 2rem;
+        }
+
+        .market-section h4 {
+            margin: 0 0 1rem 0;
+            padding: 0.75rem 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .result-item.enhanced {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .result-item.enhanced:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-symbol {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .result-change {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .result-name {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .result-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .result-conditions {
+            padding: 0.5rem;
+            background: rgba(56, 161, 105, 0.1);
+            border: 1px solid rgba(56, 161, 105, 0.2);
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .result-conditions small {
+            color: #2d8659;
+            font-weight: 500;
+        }
+
+        /* Mobile optimizations for enhanced results */
+        @media (max-width: 768px) {
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .results-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .result-metrics {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .result-actions {
+                flex-direction: column;
+            }
+        }
+
         /* Utility Classes */
         .text-center { text-align: center; }
         .text-right { text-align: right; }
@@ -645,6 +949,56 @@
                     <button id="search-stocks" class="btn btn-success btn-sm" disabled>
                         <i class="fas fa-search"></i> 실시간 검색
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API 설정 섹션 -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-key"></i>
+                <h2>API 설정</h2>
+                <div class="flex align-center gap-1">
+                    <span class="status-indicator status-warning" id="api-status">
+                        <i class="fas fa-exclamation-triangle"></i> API 키 필요
+                    </span>
+                </div>
+            </div>
+            
+            <div class="card-content">
+                <p>실제 주식 데이터를 사용하려면 Twelve Data API 키가 필요합니다.</p>
+                
+                <div class="form-group">
+                    <label for="api-key">Twelve Data API 키:</label>
+                    <div class="flex gap-1">
+                        <input type="password" id="api-key" class="form-control" placeholder="API 키를 입력하세요">
+                        <button type="button" id="save-api-key" class="btn btn-primary">
+                            <i class="fas fa-save"></i> 저장
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="api-info">
+                    <div class="info-box" style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                        <i class="fas fa-info-circle" style="color: #d63031;"></i>
+                        <div style="margin-left: 0.5rem;">
+                            <strong>무료 플랜 한도:</strong>
+                            <ul style="margin: 0.5rem 0 0 1rem;">
+                                <li>월 800 API 호출</li>
+                                <li>초당 8 요청 제한</li>
+                                <li>실시간 미국 주식, EOD 해외 주식</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-1">
+                        <a href="https://twelvedata.com/" target="_blank" class="btn btn-outline btn-sm">
+                            <i class="fas fa-external-link-alt"></i> Twelve Data 가입하기
+                        </a>
+                        <button type="button" id="test-api" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-vial"></i> API 테스트
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
