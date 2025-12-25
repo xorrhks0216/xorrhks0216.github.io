@@ -97,6 +97,13 @@ class Game {
         // 키 입력 상태
         this.keys = {};
         
+        // 터치 상태
+        this.touchState = {
+            left: false,
+            right: false,
+            jump: false
+        };
+        
         // 물리 상수
         this.gravity = 0.8;
         this.friction = 0.8;
@@ -106,6 +113,7 @@ class Game {
     
     init() {
         this.setupEventListeners();
+        this.setupTouchControls();
         this.gameLoop();
     }
     
@@ -134,6 +142,124 @@ class Game {
         document.getElementById('coinsToggle').addEventListener('change', (e) => {
             this.coinsEnabled = e.target.checked;
             this.updateGameStatus();
+        });
+    }
+    
+    setupTouchControls() {
+        const touchLeft = document.getElementById('touchLeft');
+        const touchRight = document.getElementById('touchRight');
+        const touchJump = document.getElementById('touchJump');
+        
+        // 왼쪽 버튼
+        touchLeft.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.touchState.left = true;
+            this.keys['a'] = true;
+        });
+        
+        touchLeft.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.touchState.left = false;
+            this.keys['a'] = false;
+        });
+        
+        touchLeft.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            this.touchState.left = false;
+            this.keys['a'] = false;
+        });
+        
+        // 마우스 이벤트도 지원 (데스크톱에서 테스트용)
+        touchLeft.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            this.touchState.left = true;
+            this.keys['a'] = true;
+        });
+        
+        touchLeft.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            this.touchState.left = false;
+            this.keys['a'] = false;
+        });
+        
+        touchLeft.addEventListener('mouseleave', (e) => {
+            e.preventDefault();
+            this.touchState.left = false;
+            this.keys['a'] = false;
+        });
+        
+        // 오른쪽 버튼
+        touchRight.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.touchState.right = true;
+            this.keys['d'] = true;
+        });
+        
+        touchRight.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.touchState.right = false;
+            this.keys['d'] = false;
+        });
+        
+        touchRight.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            this.touchState.right = false;
+            this.keys['d'] = false;
+        });
+        
+        touchRight.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            this.touchState.right = true;
+            this.keys['d'] = true;
+        });
+        
+        touchRight.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            this.touchState.right = false;
+            this.keys['d'] = false;
+        });
+        
+        touchRight.addEventListener('mouseleave', (e) => {
+            e.preventDefault();
+            this.touchState.right = false;
+            this.keys['d'] = false;
+        });
+        
+        // 점프 버튼
+        touchJump.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.touchState.jump = true;
+            this.keys['w'] = true;
+        });
+        
+        touchJump.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.touchState.jump = false;
+            this.keys['w'] = false;
+        });
+        
+        touchJump.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            this.touchState.jump = false;
+            this.keys['w'] = false;
+        });
+        
+        touchJump.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            this.touchState.jump = true;
+            this.keys['w'] = true;
+        });
+        
+        touchJump.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            this.touchState.jump = false;
+            this.keys['w'] = false;
+        });
+        
+        touchJump.addEventListener('mouseleave', (e) => {
+            e.preventDefault();
+            this.touchState.jump = false;
+            this.keys['w'] = false;
         });
     }
     
@@ -224,13 +350,13 @@ class Game {
     
     handleInput() {
         // 게임이 시작되지 않은 상태에서 방향키 입력 시 게임 시작
-        if (!this.isRunning && !this.isVictory && (this.keys['a'] || this.keys['d'] || this.keys['arrowleft'] || this.keys['arrowright'] || this.keys['w'] || this.keys['arrowup'])) {
+        if (!this.isRunning && !this.isVictory && (this.keys['a'] || this.keys['d'] || this.keys['arrowleft'] || this.keys['arrowright'] || this.keys['w'] || this.keys['arrowup'] || this.touchState.left || this.touchState.right || this.touchState.jump)) {
             this.startGame();
             return;
         }
         
         // 게임오버 상태에서 방향키 입력 시 게임 재시작
-        if (this.isGameOver && (this.keys['a'] || this.keys['d'] || this.keys['arrowleft'] || this.keys['arrowright'] || this.keys['w'] || this.keys['arrowup'])) {
+        if (this.isGameOver && (this.keys['a'] || this.keys['d'] || this.keys['arrowleft'] || this.keys['arrowright'] || this.keys['w'] || this.keys['arrowup'] || this.touchState.left || this.touchState.right || this.touchState.jump)) {
             this.resetGame();
             this.startGame();
             return;
@@ -238,17 +364,17 @@ class Game {
         
         if (!this.isRunning) return;
         
-        // 좌우 이동
-        if (this.keys['a'] || this.keys['arrowleft']) {
+        // 좌우 이동 (키보드 + 터치)
+        if (this.keys['a'] || this.keys['arrowleft'] || this.touchState.left) {
             this.player.velocityX = -this.player.speed;
-        } else if (this.keys['d'] || this.keys['arrowright']) {
+        } else if (this.keys['d'] || this.keys['arrowright'] || this.touchState.right) {
             this.player.velocityX = this.player.speed;
         } else {
             this.player.velocityX *= this.friction;
         }
         
-        // 점프
-        if ((this.keys['w'] || this.keys['arrowup']) && this.player.onGround) {
+        // 점프 (키보드 + 터치)
+        if ((this.keys['w'] || this.keys['arrowup'] || this.touchState.jump) && this.player.onGround) {
             this.player.velocityY = -this.player.jumpPower;
             this.player.onGround = false;
         }
