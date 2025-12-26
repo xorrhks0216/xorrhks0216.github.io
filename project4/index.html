@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미로 탈출 게임</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>미로 탈출 게임</h1>
+        </header>
+        
+        <div class="game-info">
+            <div class="info-item">
+                <span>미로 크기: </span>
+                <span id="mazeSize">-</span>
+            </div>
+            <div class="info-item">
+                <span>이동 횟수: </span>
+                <span id="moveCount">0</span>
+            </div>
+        </div>
+
+        <div class="canvas-wrapper">
+            <canvas id="mazeCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-buttons">
+                <button id="btnUp" class="control-btn">↑</button>
+                <div class="horizontal-controls">
+                    <button id="btnLeft" class="control-btn">←</button>
+                    <button id="btnDown" class="control-btn">↓</button>
+                    <button id="btnRight" class="control-btn">→</button>
+                </div>
+            </div>
+
+            <div class="game-options">
+                <label class="option-label">
+                    <input type="checkbox" id="showPathToggle" checked>
+                    지나온 길 표시
+                </label>
+            </div>
+
+            <div class="maze-size-selector">
+                <label for="mazeSizeInput" class="size-label">미로 크기:</label>
+                <input type="number" id="mazeSizeInput" min="15" max="35" value="20" step="2" class="size-input">
+                <span class="size-note">(홀수만 가능, 15-35)</span>
+            </div>
+
+            <div class="action-buttons">
+                <button id="resetBtn" class="action-btn">미로 리셋</button>
+                <button id="newMazeBtn" class="action-btn">새 미로</button>
+            </div>
+
+            <div class="instructions">
+                <p>조작법: 방향키 또는 화면의 버튼을 사용하여 이동하세요.</p>
+                <p>목표: 시작점(초록색)에서 끝점(빨간색)까지 도달하세요!</p>
+            </div>
+        </div>
+
+        <div id="winMessage" class="win-message hidden">
+            <h2>축하합니다! 미로를 탈출했습니다!</h2>
+            <p>이동 횟수: <span id="finalMoveCount">0</span></p>
+            <button id="playAgainBtn" class="action-btn">다시 하기</button>
+        </div>
+    </div>
+
+    <script src="maze.js"></script>
+</body>
+</html>
+
