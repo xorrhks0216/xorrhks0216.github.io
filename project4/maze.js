@@ -557,10 +557,17 @@ class MazeGame {
                 document.mozPointerLockElement === container ||
                 document.webkitPointerLockElement === container;
             const info = document.getElementById('pointerLockInfo');
-            if (this.isPointerLocked) {
-                info.classList.add('hidden');
-            } else {
-                info.classList.remove('hidden');
+            if (info) {
+                if (this.isPointerLocked) {
+                    info.classList.add('hidden');
+                } else {
+                    // 3D 모드일 때만 메시지 표시
+                    if (this.viewMode === '3D') {
+                        info.classList.remove('hidden');
+                    } else {
+                        info.classList.add('hidden');
+                    }
+                }
             }
         };
 
@@ -897,6 +904,11 @@ class MazeGame {
         document.getElementById('instructions3D').classList.add('hidden');
         if (this.isPointerLocked) {
             document.exitPointerLock();
+        }
+        // 3D 모드 메시지 숨기기
+        const info = document.getElementById('pointerLockInfo');
+        if (info) {
+            info.classList.add('hidden');
         }
         this.draw();
     }
