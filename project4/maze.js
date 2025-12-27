@@ -655,13 +655,37 @@ class MazeGame {
                 moveZ += right_vec.z * this.moveSpeed;
             }
 
-            const newX = this.camera.position.x + moveX;
-            const newZ = this.camera.position.z + moveZ;
+            const currentX = this.camera.position.x;
+            const currentZ = this.camera.position.z;
+            const newX = currentX + moveX;
+            const newZ = currentZ + moveZ;
 
-            // 충돌 체크
+            // 벽 미끄러짐 로직: X축과 Z축을 분리해서 체크
+            let finalX = currentX;
+            let finalZ = currentZ;
+
+            // 전체 이동이 가능하면 그대로 이동
             if (this.canMove3D(newX, newZ)) {
-                this.camera.position.x = newX;
-                this.camera.position.z = newZ;
+                finalX = newX;
+                finalZ = newZ;
+            } else {
+                // X축만 이동 시도
+                if (this.canMove3D(newX, currentZ)) {
+                    finalX = newX;
+                    finalZ = currentZ;
+                }
+                // Z축만 이동 시도
+                else if (this.canMove3D(currentX, newZ)) {
+                    finalX = currentX;
+                    finalZ = newZ;
+                }
+                // 둘 다 막혔으면 이동하지 않음
+            }
+
+            // 위치가 변경되었으면 적용
+            if (finalX !== currentX || finalZ !== currentZ) {
+                this.camera.position.x = finalX;
+                this.camera.position.z = finalZ;
                 this.updatePlayer3DPos();
             }
         };
