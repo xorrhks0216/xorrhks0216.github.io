@@ -12,7 +12,7 @@ class MazeGame {
         this.startPos = { row: 0, col: 0 };
         this.endPos = { row: 0, col: 0 };
         this.moveCount = 0;
-        this.showPath = true;
+        this.showPath = false;
         this.gameWon = false;
         this.viewMode = '2D'; // '2D' or '3D'
         
@@ -33,6 +33,7 @@ class MazeGame {
         this.startMarker = null;
         this.endMarker = null;
         this.player3D = null;
+        this.pathMarkers = []; // 지나온 길 마커들
         this.isPointerLocked = false;
         this.euler = new THREE.Euler(0, 0, 0, 'YXZ');
         this.moveSpeed = 0.1;
@@ -257,23 +258,44 @@ class MazeGame {
         });
 
         // 버튼 이벤트
-        document.getElementById('btnUp').addEventListener('click', () => {
+        const setupButton = (btnId, handler) => {
+            const btn = document.getElementById(btnId);
+            // 클릭 이벤트
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                handler();
+            });
+            // 터치 이벤트 (모바일 확대 방지)
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handler();
+            });
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+            });
+        };
+        
+        setupButton('btnUp', () => {
             if (!this.gameWon) this.movePlayer(-1, 0);
         });
-        document.getElementById('btnDown').addEventListener('click', () => {
+        setupButton('btnDown', () => {
             if (!this.gameWon) this.movePlayer(1, 0);
         });
-        document.getElementById('btnLeft').addEventListener('click', () => {
+        setupButton('btnLeft', () => {
             if (!this.gameWon) this.movePlayer(0, -1);
         });
-        document.getElementById('btnRight').addEventListener('click', () => {
+        setupButton('btnRight', () => {
             if (!this.gameWon) this.movePlayer(0, 1);
         });
 
         // 옵션 토글
         document.getElementById('showPathToggle').addEventListener('change', (e) => {
             this.showPath = e.target.checked;
-            this.draw();
+            if (this.viewMode === '2D') {
+                this.draw();
+            } else if (this.viewMode === '3D') {
+                this.update3DPathMarkers();
+            }
         });
 
         // 리셋 버튼
@@ -404,11 +426,18 @@ class MazeGame {
         this.moveCount++;
         document.getElementById('moveCount').textContent = this.moveCount;
 
-        // 방문 기록
-        if (this.showPath) {
-            this.visited[newRow][newCol] = true;
-            this.path.push({ row: newRow, col: newCol });
+        // 방문 기록 (항상 기록, 표시 여부와 무관)
+        this.visited[newRow][newCol] = true;
+        this.path.push({ row: newRow, col: newCol });
+
+        // 승리 체크
+        if (newRow === this.endPos.row && newCol === this.endPos.col) {
+            this.gameWon = true;
+            document.getElementById('finalMoveCount').textContent = this.moveCount;
+            document.getElementById('winMessage').classList.remove('hidden');
         }
+
+        this.draw();
 
         // 승리 체크
         if (newRow === this.endPos.row && newCol === this.endPos.col) {
@@ -769,6 +798,9 @@ class MazeGame {
         if (this.ceiling) this.scene.remove(this.ceiling);
         if (this.startMarker) this.scene.remove(this.startMarker);
         if (this.endMarker) this.scene.remove(this.endMarker);
+        // 지나온 길 마커 제거
+        this.pathMarkers.forEach(marker => this.scene.remove(marker));
+        this.pathMarkers = [];
 
         const cellSize = 1;
         const wallHeight = 2;
@@ -860,6 +892,90 @@ class MazeGame {
             console.log('Camera position (world):', { x: currentX, y: 1.6, z: currentZ });
             console.log('===========================');
         }
+        
+        // 지나온 길 마커 생성
+        this.update3DPathMarkers();
+    }
+    
+    add3DPathMarker(row, col) {
+        // showPath가 false면 마커 추가하지 않음
+        if (!this.showPath) return;
+        
+        // 시작점과 끝점은 제외
+        if ((row === this.startPos.row && col === this.startPos.col) ||
+            (row === this.endPos.row && col === this.endPos.col)) {
+            return;
+        }
+        
+        // 이미 마커가 있는지 확인
+        const cellSize = 1;
+        const offset = (this.cols - 1) / 2;
+        const x = (col - offset) * cellSize;
+        const z = (row - offset) * cellSize;
+        
+        const exists = this.pathMarkers.some(marker => 
+            Math.abs(marker.position.x - x) < 0.1 && 
+            Math.abs(marker.position.z - z) < 0.1
+        );
+        
+        if (exists) return;
+        
+        const pathGeometry = new THREE.PlaneGeometry(cellSize * 0.8, cellSize * 0.8);
+        const pathMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x3498db,
+            transparent: true,
+            opacity: 0.4
+        });
+        const pathMarker = new THREE.Mesh(pathGeometry, pathMaterial);
+        pathMarker.rotation.x = -Math.PI / 2;
+        pathMarker.position.set(x, 0.01, z);
+        this.scene.add(pathMarker);
+        this.pathMarkers.push(pathMarker);
+    }
+    
+    update3DPathMarkers() {
+        if (!this.scene || !this.showPath) {
+            // 옵션이 꺼져있으면 모든 마커 제거
+            this.pathMarkers.forEach(marker => this.scene.remove(marker));
+            this.pathMarkers = [];
+            return;
+        }
+        
+        const cellSize = 1;
+        const offset = (this.cols - 1) / 2;
+        
+        // 기존 마커 제거
+        this.pathMarkers.forEach(marker => this.scene.remove(marker));
+        this.pathMarkers = [];
+        
+        // visited된 위치에 마커 추가
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < this.cols; j++) {
+                if (this.visited[i] && this.visited[i][j] && this.maze[i][j] === 0) {
+                    // 시작점과 끝점은 제외
+                    if ((i === this.startPos.row && j === this.startPos.col) ||
+                        (i === this.endPos.row && j === this.endPos.col)) {
+                        continue;
+                    }
+                    
+                    const pathGeometry = new THREE.PlaneGeometry(cellSize * 0.8, cellSize * 0.8);
+                    const pathMaterial = new THREE.MeshStandardMaterial({ 
+                        color: 0x3498db,
+                        transparent: true,
+                        opacity: 0.4
+                    });
+                    const pathMarker = new THREE.Mesh(pathGeometry, pathMaterial);
+                    pathMarker.rotation.x = -Math.PI / 2;
+                    pathMarker.position.set(
+                        (j - offset) * cellSize,
+                        0.01,
+                        (i - offset) * cellSize
+                    );
+                    this.scene.add(pathMarker);
+                    this.pathMarkers.push(pathMarker);
+                }
+            }
+        }
     }
 
     updatePlayer3DPos() {
@@ -879,8 +995,12 @@ class MazeGame {
                 this.moveCount++;
                 document.getElementById('moveCount').textContent = this.moveCount;
 
-                if (this.showPath) {
-                    this.visited[row][col] = true;
+                // 방문 기록 (항상 기록)
+                this.visited[row][col] = true;
+                
+                // 표시 여부는 showPath 옵션에 따라 결정
+                if (this.showPath && this.viewMode === '3D' && this.scene) {
+                    this.add3DPathMarker(row, col);
                 }
 
                 // 승리 체크
@@ -949,6 +1069,12 @@ class MazeGame {
         this.gameWon = false;
         document.getElementById('moveCount').textContent = '0';
         document.getElementById('winMessage').classList.add('hidden');
+        
+        // 3D 모드에서 지나온 길 마커 제거
+        if (this.viewMode === '3D' && this.scene) {
+            this.pathMarkers.forEach(marker => this.scene.remove(marker));
+            this.pathMarkers = [];
+        }
         
         if (this.viewMode === '2D') {
             this.draw();

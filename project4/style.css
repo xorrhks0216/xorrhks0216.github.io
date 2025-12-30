@@ -26,6 +26,7 @@ body {
     justify-content: center;
     align-items: center;
     padding: 1rem;
+    touch-action: manipulation; /* 모바일 확대 방지 */
 }
 
 .game-container {
@@ -160,6 +161,8 @@ header h1 {
     transition: all 0.2s;
     font-weight: bold;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    touch-action: manipulation; /* 모바일 확대 방지 */
+    -webkit-tap-highlight-color: transparent; /* 터치 하이라이트 제거 */
 }
 
 .control-btn:hover {
