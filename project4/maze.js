@@ -1187,6 +1187,7 @@ class MazeGame {
             requestAnimationFrame(animate);
             if (this.viewMode === '3D' && this.scene && this.camera && this.renderer) {
                 this.move3D();
+                this.updateCompass();
                 this.renderer.render(this.scene, this.camera);
             }
         };
@@ -1495,6 +1496,13 @@ class MazeGame {
         document.getElementById('maze3D').classList.add('hidden');
         document.getElementById('instructions2D').classList.remove('hidden');
         document.getElementById('instructions3D').classList.add('hidden');
+        
+        // 나침반 숨기기
+        const compass = document.getElementById('compass');
+        if (compass) {
+            compass.classList.add('hidden');
+        }
+        
         if (this.isPointerLocked) {
             document.exitPointerLock();
         }
@@ -1514,6 +1522,12 @@ class MazeGame {
         document.getElementById('instructions2D').classList.add('hidden');
         document.getElementById('instructions3D').classList.remove('hidden');
         
+        // 나침반 표시
+        const compass = document.getElementById('compass');
+        if (compass) {
+            compass.classList.remove('hidden');
+        }
+        
         if (!this.scene) {
             this.setup3D();
         }
@@ -1529,6 +1543,27 @@ class MazeGame {
         if (this.horrorMode) {
             this.startMonsterMovement();
         }
+    }
+
+    // 나침반 업데이트
+    updateCompass() {
+        if (!this.camera || this.viewMode !== '3D') return;
+        
+        const compass = document.getElementById('compass');
+        const needle = compass?.querySelector('.compass-needle');
+        if (!compass || !needle) return;
+        
+        // euler.y를 직접 사용하여 수평 회전만 반영 (상하 회전은 무시)
+        // euler.y는 좌우 수평 회전만 나타내므로 나침반에 적합
+        const horizontalRotation = this.euler.y;
+        
+        // 라디안을 도로 변환
+        // 카메라가 북쪽(0)을 바라볼 때 바늘이 위(0도)를 가리켜야 함
+        // 카메라가 동쪽(π/2)을 바라볼 때 바늘이 오른쪽(90도)을 가리켜야 함
+        const degrees = horizontalRotation * (180 / Math.PI);
+        
+        // 바늘 회전 (카메라가 바라보는 방향의 반대 방향)
+        needle.style.transform = `translate(-50%, -100%) rotate(${-degrees}deg)`;
     }
 
     // 괴물 초기화

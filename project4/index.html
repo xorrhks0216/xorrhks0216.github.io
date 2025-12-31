@@ -26,7 +26,17 @@
 
         <div class="canvas-wrapper">
             <canvas id="mazeCanvas"></canvas>
-            <div id="maze3D" class="maze-3d hidden"></div>
+            <div id="maze3D" class="maze-3d hidden">
+                <div id="compass" class="compass hidden">
+                    <div class="compass-ring">
+                        <div class="compass-direction" id="compassN">N</div>
+                        <div class="compass-direction" id="compassE">E</div>
+                        <div class="compass-direction" id="compassS">S</div>
+                        <div class="compass-direction" id="compassW">W</div>
+                        <div class="compass-needle"></div>
+                    </div>
+                </div>
+            </div>
             <div id="pointerLockInfo" class="pointer-lock-info hidden">
                 <p>마우스를 클릭하여 3D 모드를 시작하세요</p>
             </div>
