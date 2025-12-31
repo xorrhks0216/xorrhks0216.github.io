@@ -551,6 +551,80 @@ class MazeGame {
                 } catch (err) {
                     // 포인터 잠금 해제 실패는 무시
                 }
+                return;
+            }
+            
+            // 단축키 처리
+            // 입력 필드에 포커스가 있을 때는 단축키 무시
+            const activeElement = document.activeElement;
+            if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+                return;
+            }
+            
+            switch(key) {
+                case '2':
+                    // 2D 보기
+                    e.preventDefault();
+                    if (this.viewMode !== '2D') {
+                        document.getElementById('view2D').checked = true;
+                        this.switchTo2D();
+                    }
+                    break;
+                case '3':
+                    // 3D 보기
+                    e.preventDefault();
+                    if (this.viewMode !== '3D') {
+                        document.getElementById('view3D').checked = true;
+                        this.switchTo3D();
+                    }
+                    break;
+                case 'h':
+                    // 지나온 길 표시 토글
+                    e.preventDefault();
+                    const showPathToggle = document.getElementById('showPathToggle');
+                    showPathToggle.checked = !showPathToggle.checked;
+                    this.showPath = showPathToggle.checked;
+                    if (this.viewMode === '2D') {
+                        this.draw();
+                    } else if (this.viewMode === '3D') {
+                        this.update3DPathMarkers();
+                    }
+                    break;
+                case 'f':
+                    // 공포 모드 토글
+                    e.preventDefault();
+                    const horrorModeToggle = document.getElementById('horrorModeToggle');
+                    const wasEnabled = this.horrorMode;
+                    horrorModeToggle.checked = !horrorModeToggle.checked;
+                    this.horrorMode = horrorModeToggle.checked;
+                    
+                    if (this.horrorMode && !wasEnabled) {
+                        // 공포 모드 활성화 시 게임 재시작
+                        this.resetGame();
+                        this.initializeMonster();
+                        this.startMonsterMovement();
+                    } else if (!this.horrorMode && wasEnabled) {
+                        // 공포 모드 비활성화 시 괴물 제거
+                        this.stopMonsterMovement();
+                        this.removeMonster();
+                    }
+                    break;
+                case 'r':
+                    // 미로 리셋
+                    e.preventDefault();
+                    this.resetGame();
+                    break;
+                case 'n':
+                    // 새 미로
+                    e.preventDefault();
+                    this.generateRandomSize();
+                    this.generateMaze();
+                    if (this.viewMode === '2D') {
+                        this.draw();
+                    } else {
+                        this.create3DMaze(true); // 새 미로이므로 위치 리셋
+                    }
+                    break;
             }
         });
         
