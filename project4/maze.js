@@ -17,6 +17,10 @@ class MazeGame {
         this.gameOver = false;
         this.horrorMode = false;
         this.viewMode = '2D'; // '2D' or '3D'
+        this.wallTexture = 'default'; // 벽면 텍스처 스타일
+        this.wallTexturePatterns = {}; // 2D 패턴 캐시
+        this.wallTexture3D = {}; // 3D 텍스처 캐시
+        this.textureImages = {}; // 로드된 이미지 캐시
         
         // 괴물 관련 변수
         this.monster = {
@@ -64,7 +68,40 @@ class MazeGame {
         this.generateMaze();
         this.setupEventListeners();
         this.setup3D();
+        this.preloadTextures();
         this.draw();
+    }
+
+    // 텍스처 이미지 미리 로드
+    preloadTextures() {
+        const textureFiles = {
+            'wood': 'textures/wood.png',
+            'vine': 'textures/vine.png'
+        };
+
+        Object.keys(textureFiles).forEach(textureName => {
+            const img = new Image();
+            // 로컬 파일의 경우 crossOrigin 설정 제거 (같은 도메인이므로 불필요)
+            // img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                this.textureImages[textureName] = img;
+                console.log(`Texture loaded: ${textureFiles[textureName]}`);
+                // 이미지 로드 후 현재 뷰 모드에 따라 다시 그리기
+                if (this.viewMode === '2D' && this.wallTexture === textureName) {
+                    this.wallTexturePatterns[textureName] = null; // 캐시 초기화
+                    this.draw();
+                } else if (this.viewMode === '3D' && this.wallTexture === textureName && this.scene) {
+                    this.wallTexture3D[textureName] = null; // 캐시 초기화
+                    this.create3DMaze(false);
+                }
+            };
+            img.onerror = (e) => {
+                console.warn(`Failed to load texture: ${textureFiles[textureName]}`, e);
+                // 이미지 로드 실패 시 기본 패턴 사용 (이미 구현되어 있음)
+            };
+            // src 설정은 onload/onerror 등록 후에 해야 함
+            img.src = textureFiles[textureName];
+        });
     }
 
     generateRandomSize() {
@@ -768,6 +805,19 @@ class MazeGame {
                 this.startMonsterMovement();
             }
         });
+
+        // 벽면 텍스처 선택
+        document.getElementById('wallTextureSelect').addEventListener('change', (e) => {
+            this.wallTexture = e.target.value;
+            this.wallTexturePatterns = {}; // 패턴 캐시 초기화
+            this.wallTexture3D = {}; // 3D 텍스처 캐시 초기화
+            
+            if (this.viewMode === '2D') {
+                this.draw();
+            } else if (this.viewMode === '3D' && this.scene) {
+                this.create3DMaze(false); // 현재 위치 유지하며 미로 재생성
+            }
+        });
     }
 
     updateCurrentDirection() {
@@ -880,8 +930,9 @@ class MazeGame {
                 const y = i * this.cellSize;
 
                 if (this.maze[i][j] === 1) {
-                    // 벽
-                    this.ctx.fillStyle = '#34495e';
+                    // 벽 - 텍스처 적용
+                    const pattern = this.getWallTexturePattern2D();
+                    this.ctx.fillStyle = pattern;
                     this.ctx.fillRect(x, y, this.cellSize, this.cellSize);
                 } else {
                     // 길
@@ -1280,8 +1331,8 @@ class MazeGame {
         this.ceiling.position.set(0, wallHeight, 0);
         this.scene.add(this.ceiling);
 
-        // 벽 생성
-        const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x34495e });
+        // 벽 생성 - 텍스처 적용
+        const wallMaterial = this.getWallTextureMaterial3D();
         for (let i = 0; i < this.rows; i++) {
             for (let j = 0; j < this.cols; j++) {
                 if (this.maze[i][j] === 1) {
@@ -1543,6 +1594,276 @@ class MazeGame {
         if (this.horrorMode) {
             this.startMonsterMovement();
         }
+    }
+
+    // 2D 벽면 텍스처 패턴 생성
+    getWallTexturePattern2D() {
+        if (this.wallTexturePatterns[this.wallTexture]) {
+            return this.wallTexturePatterns[this.wallTexture];
+        }
+
+        // 외부 이미지가 있으면 사용
+        if (this.textureImages[this.wallTexture]) {
+            const pattern = this.ctx.createPattern(this.textureImages[this.wallTexture], 'repeat');
+            this.wallTexturePatterns[this.wallTexture] = pattern;
+            return pattern;
+        }
+
+        const patternCanvas = document.createElement('canvas');
+        patternCanvas.width = this.cellSize;
+        patternCanvas.height = this.cellSize;
+        const patternCtx = patternCanvas.getContext('2d');
+
+        switch(this.wallTexture) {
+            case 'wood':
+                // 나무벽 스타일 (이미지가 없을 때만 사용)
+                patternCtx.fillStyle = '#8B4513';
+                patternCtx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+                patternCtx.strokeStyle = '#654321';
+                patternCtx.lineWidth = 1;
+                for (let i = 0; i < patternCanvas.height; i += 3) {
+                    patternCtx.beginPath();
+                    patternCtx.moveTo(0, i);
+                    patternCtx.lineTo(patternCanvas.width, i);
+                    patternCtx.stroke();
+                }
+                break;
+            case 'vine':
+                // 덩쿨 스타일 (이미지가 없을 때만 사용)
+                patternCtx.fillStyle = '#2d5016';
+                patternCtx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+                patternCtx.strokeStyle = '#1a3009';
+                patternCtx.lineWidth = 2;
+                // 덩쿨 패턴
+                for (let i = 0; i < patternCanvas.width; i += 8) {
+                    patternCtx.beginPath();
+                    patternCtx.moveTo(i, 0);
+                    patternCtx.quadraticCurveTo(i + 4, patternCanvas.height / 2, i, patternCanvas.height);
+                    patternCtx.stroke();
+                }
+                break;
+            case 'brick':
+                // 벽돌 스타일
+                patternCtx.fillStyle = '#B22222';
+                patternCtx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+                patternCtx.strokeStyle = '#8B0000';
+                patternCtx.lineWidth = 1;
+                // 벽돌 줄
+                for (let i = 0; i < patternCanvas.height; i += patternCanvas.height / 3) {
+                    patternCtx.beginPath();
+                    patternCtx.moveTo(0, i);
+                    patternCtx.lineTo(patternCanvas.width, i);
+                    patternCtx.stroke();
+                    // 교차 줄
+                    if (i % (patternCanvas.height / 1.5) === 0) {
+                        patternCtx.beginPath();
+                        patternCtx.moveTo(patternCanvas.width / 2, i);
+                        patternCtx.lineTo(patternCanvas.width / 2, i + patternCanvas.height / 3);
+                        patternCtx.stroke();
+                    }
+                }
+                break;
+            case 'alley':
+                // 골목 스타일
+                patternCtx.fillStyle = '#2C2C2C';
+                patternCtx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+                patternCtx.fillStyle = '#1a1a1a';
+                // 돌 패턴
+                for (let i = 0; i < patternCanvas.width; i += 4) {
+                    for (let j = 0; j < patternCanvas.height; j += 4) {
+                        if ((i + j) % 8 === 0) {
+                            patternCtx.fillRect(i, j, 2, 2);
+                        }
+                    }
+                }
+                break;
+            case 'garden':
+                // 정원 스타일
+                patternCtx.fillStyle = '#90EE90';
+                patternCtx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+                patternCtx.fillStyle = '#228B22';
+                // 잎사귀 패턴
+                for (let i = 0; i < patternCanvas.width; i += 6) {
+                    for (let j = 0; j < patternCanvas.height; j += 6) {
+                        patternCtx.beginPath();
+                        patternCtx.arc(i, j, 2, 0, Math.PI * 2);
+                        patternCtx.fill();
+                    }
+                }
+                break;
+            case 'flower':
+                // 꽃나무 스타일
+                patternCtx.fillStyle = '#FFB6C1';
+                patternCtx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+                patternCtx.fillStyle = '#FF69B4';
+                // 꽃 패턴
+                for (let i = 0; i < patternCanvas.width; i += 8) {
+                    for (let j = 0; j < patternCanvas.height; j += 8) {
+                        patternCtx.beginPath();
+                        patternCtx.arc(i, j, 3, 0, Math.PI * 2);
+                        patternCtx.fill();
+                        patternCtx.fillStyle = '#FF1493';
+                        patternCtx.beginPath();
+                        patternCtx.arc(i, j, 1, 0, Math.PI * 2);
+                        patternCtx.fill();
+                        patternCtx.fillStyle = '#FF69B4';
+                    }
+                }
+                break;
+            default:
+                // 기본 스타일
+                patternCtx.fillStyle = '#34495e';
+                patternCtx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+        }
+
+        const pattern = this.ctx.createPattern(patternCanvas, 'repeat');
+        this.wallTexturePatterns[this.wallTexture] = pattern;
+        return pattern;
+    }
+
+    // 3D 벽면 텍스처 재질 생성
+    getWallTextureMaterial3D() {
+        if (this.wallTexture3D[this.wallTexture]) {
+            return this.wallTexture3D[this.wallTexture].clone();
+        }
+
+        // 외부 이미지가 있으면 사용
+        if (this.textureImages[this.wallTexture]) {
+            const img = this.textureImages[this.wallTexture];
+            // 이미지가 완전히 로드되었는지 확인
+            if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+                try {
+                    const texture = new THREE.Texture(img);
+                    texture.needsUpdate = true;
+                    texture.wrapS = THREE.RepeatWrapping;
+                    texture.wrapT = THREE.RepeatWrapping;
+                    texture.repeat.set(1, 1);
+                    const material = new THREE.MeshStandardMaterial({ map: texture });
+                    this.wallTexture3D[this.wallTexture] = material;
+                    return material;
+                } catch (e) {
+                    console.warn(`Failed to create texture from image: ${this.wallTexture}`, e);
+                    // 에러 발생 시 기본 재질 반환
+                    const defaultMaterial = new THREE.MeshStandardMaterial({ color: 0x34495e });
+                    return defaultMaterial;
+                }
+            } else {
+                // 이미지가 아직 로드 중이면 기본 재질 반환
+                const defaultMaterial = new THREE.MeshStandardMaterial({ color: 0x34495e });
+                return defaultMaterial;
+            }
+        }
+
+        const textureCanvas = document.createElement('canvas');
+        textureCanvas.width = 256;
+        textureCanvas.height = 256;
+        const textureCtx = textureCanvas.getContext('2d');
+
+        switch(this.wallTexture) {
+            case 'wood':
+                // 나무벽 스타일 (이미지가 없을 때만 사용)
+                textureCtx.fillStyle = '#8B4513';
+                textureCtx.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
+                textureCtx.strokeStyle = '#654321';
+                textureCtx.lineWidth = 2;
+                for (let i = 0; i < textureCanvas.height; i += 8) {
+                    textureCtx.beginPath();
+                    textureCtx.moveTo(0, i);
+                    textureCtx.lineTo(textureCanvas.width, i);
+                    textureCtx.stroke();
+                }
+                break;
+            case 'vine':
+                // 덩쿨 스타일 (이미지가 없을 때만 사용)
+                textureCtx.fillStyle = '#2d5016';
+                textureCtx.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
+                textureCtx.strokeStyle = '#1a3009';
+                textureCtx.lineWidth = 4;
+                for (let i = 0; i < textureCanvas.width; i += 16) {
+                    textureCtx.beginPath();
+                    textureCtx.moveTo(i, 0);
+                    textureCtx.quadraticCurveTo(i + 8, textureCanvas.height / 2, i, textureCanvas.height);
+                    textureCtx.stroke();
+                }
+                break;
+            case 'brick':
+                // 벽돌 스타일
+                textureCtx.fillStyle = '#B22222';
+                textureCtx.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
+                textureCtx.strokeStyle = '#8B0000';
+                textureCtx.lineWidth = 2;
+                const brickHeight = textureCanvas.height / 6;
+                for (let i = 0; i < textureCanvas.height; i += brickHeight) {
+                    textureCtx.beginPath();
+                    textureCtx.moveTo(0, i);
+                    textureCtx.lineTo(textureCanvas.width, i);
+                    textureCtx.stroke();
+                    if (Math.floor(i / brickHeight) % 2 === 0) {
+                        textureCtx.beginPath();
+                        textureCtx.moveTo(textureCanvas.width / 2, i);
+                        textureCtx.lineTo(textureCanvas.width / 2, i + brickHeight);
+                        textureCtx.stroke();
+                    }
+                }
+                break;
+            case 'alley':
+                // 골목 스타일
+                textureCtx.fillStyle = '#2C2C2C';
+                textureCtx.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
+                textureCtx.fillStyle = '#1a1a1a';
+                for (let i = 0; i < textureCanvas.width; i += 8) {
+                    for (let j = 0; j < textureCanvas.height; j += 8) {
+                        if ((i + j) % 16 === 0) {
+                            textureCtx.fillRect(i, j, 4, 4);
+                        }
+                    }
+                }
+                break;
+            case 'garden':
+                // 정원 스타일
+                textureCtx.fillStyle = '#90EE90';
+                textureCtx.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
+                textureCtx.fillStyle = '#228B22';
+                for (let i = 0; i < textureCanvas.width; i += 12) {
+                    for (let j = 0; j < textureCanvas.height; j += 12) {
+                        textureCtx.beginPath();
+                        textureCtx.arc(i, j, 4, 0, Math.PI * 2);
+                        textureCtx.fill();
+                    }
+                }
+                break;
+            case 'flower':
+                // 꽃나무 스타일
+                textureCtx.fillStyle = '#FFB6C1';
+                textureCtx.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
+                textureCtx.fillStyle = '#FF69B4';
+                for (let i = 0; i < textureCanvas.width; i += 16) {
+                    for (let j = 0; j < textureCanvas.height; j += 16) {
+                        textureCtx.beginPath();
+                        textureCtx.arc(i, j, 6, 0, Math.PI * 2);
+                        textureCtx.fill();
+                        textureCtx.fillStyle = '#FF1493';
+                        textureCtx.beginPath();
+                        textureCtx.arc(i, j, 2, 0, Math.PI * 2);
+                        textureCtx.fill();
+                        textureCtx.fillStyle = '#FF69B4';
+                    }
+                }
+                break;
+            default:
+                // 기본 스타일
+                textureCtx.fillStyle = '#34495e';
+                textureCtx.fillRect(0, 0, textureCanvas.width, textureCanvas.height);
+        }
+
+        const texture = new THREE.CanvasTexture(textureCanvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(1, 1);
+
+        const material = new THREE.MeshStandardMaterial({ map: texture });
+        this.wallTexture3D[this.wallTexture] = material;
+        return material;
     }
 
     // 나침반 업데이트
