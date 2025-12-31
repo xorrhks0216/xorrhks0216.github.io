@@ -72,25 +72,25 @@ class MazeGame {
         this.draw();
     }
 
-    // 텍스처 이미지 미리 로드 (project1 방식 참고)
+    // 텍스처 이미지 미리 로드 (2D용만, project1 방식 참고)
+    // 3D는 TextureLoader를 사용하므로 여기서는 2D Canvas Pattern용만 로드
     preloadTextures() {
         const textureFiles = {
             'wood': 'textures/wood.png',
-            'vine': 'textures/vine.png'
+            'vine': 'textures/vine.png',
+            'brick': 'textures/brick.png',
         };
 
         Object.keys(textureFiles).forEach(textureName => {
             const img = new Image();
-            // project1처럼 crossOrigin 설정 없이 직접 로드
+            // project1처럼 crossOrigin 설정 없이 직접 로드 (2D Canvas Pattern용)
             img.onload = () => {
                 this.textureImages[textureName] = img;
-                // 이미지 로드 후 현재 뷰 모드에 따라 다시 그리기
+                // 이미지 로드 후 2D 모드에서만 다시 그리기
+                // 3D는 TextureLoader를 사용하므로 여기서 처리하지 않음
                 if (this.viewMode === '2D' && this.wallTexture === textureName) {
                     this.wallTexturePatterns[textureName] = null; // 캐시 초기화
                     this.draw();
-                } else if (this.viewMode === '3D' && this.wallTexture === textureName && this.scene) {
-                    this.wallTexture3D[textureName] = null; // 캐시 초기화
-                    this.create3DMaze(false);
                 }
             };
             img.onerror = () => {
@@ -1718,37 +1718,20 @@ class MazeGame {
         return pattern;
     }
 
-    // 3D 벽면 텍스처 재질 생성 (project1 방식 참고 - TextureLoader 사용)
+    // 3D 벽면 텍스처 재질 생성 (project1 방식 참고 - TextureLoader만 사용)
+    // Image 객체를 직접 사용하면 CORS 오류 발생하므로 TextureLoader만 사용
     getWallTextureMaterial3D() {
         if (this.wallTexture3D[this.wallTexture]) {
             return this.wallTexture3D[this.wallTexture].clone();
         }
 
-        // 외부 이미지가 있으면 직접 사용 (project1처럼)
-        if (this.textureImages[this.wallTexture]) {
-            const img = this.textureImages[this.wallTexture];
-            // 이미지가 완전히 로드되었는지 확인
-            if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
-                try {
-                    const imgTexture = new THREE.Texture(img);
-                    imgTexture.needsUpdate = true;
-                    imgTexture.wrapS = THREE.RepeatWrapping;
-                    imgTexture.wrapT = THREE.RepeatWrapping;
-                    imgTexture.repeat.set(1, 1);
-                    const imgMaterial = new THREE.MeshStandardMaterial({ map: imgTexture });
-                    this.wallTexture3D[this.wallTexture] = imgMaterial;
-                    return imgMaterial;
-                } catch (e) {
-                    // 에러 발생 시 TextureLoader로 재시도
-                }
-            }
-        }
-        
-        // 이미지가 없거나 로드 중이면 TextureLoader 사용 (project1 방식)
-        // wood와 vine만 이미지 파일이 있으므로 먼저 시도
-        if (this.wallTexture === 'wood' || this.wallTexture === 'vine') {
+        // 외부 이미지 파일이 있는 텍스처는 TextureLoader 사용 (project1 방식)
+        const textureFiles = ['wood', 'vine', 'brick'];
+        if (textureFiles.includes(this.wallTexture)) {
             const texturePath = `textures/${this.wallTexture}.png`;
             const loader = new THREE.TextureLoader();
+            // project1처럼 직접 경로 사용, crossOrigin 설정하지 않음 (같은 도메인)
+            // TextureLoader는 내부적으로 Image 객체를 생성하지만 올바르게 처리함
             const loadedTexture = loader.load(
                 texturePath,
                 // 로드 성공
