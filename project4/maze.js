@@ -14,7 +14,20 @@ class MazeGame {
         this.moveCount = 0;
         this.showPath = false;
         this.gameWon = false;
+        this.gameOver = false;
+        this.horrorMode = false;
         this.viewMode = '2D'; // '2D' or '3D'
+        
+        // 괴물 관련 변수
+        this.monster = {
+            row: 0,
+            col: 0,
+            direction: null, // 이동 방향
+            moveTimer: null,
+            moveInterval: 800, // 괴물 이동 간격 (ms)
+            speed: 1 // 이동 속도 (칸 단위)
+        };
+        this.monster3D = null; // 3D 괴물 객체
         
         // 키보드 연속 입력을 위한 변수
         this.keys = {};
@@ -299,6 +312,16 @@ class MazeGame {
         this.endPos = { row: this.rows - 2, col: this.cols - 2 };
         this.playerPos = { ...this.startPos };
         
+        // 시작점과 끝점이 길인지 확인하고, 아니면 길로 만들기
+        this.maze[this.startPos.row][this.startPos.col] = 0;
+        this.maze[this.endPos.row][this.endPos.col] = 0;
+        
+        // 시작점에서 끝점까지 경로가 있는지 확인 (BFS)
+        if (!this.hasPath(this.startPos.row, this.startPos.col, this.endPos.row, this.endPos.col)) {
+            // 경로가 없으면 강제로 경로 생성
+            this.createPath(this.startPos.row, this.startPos.col, this.endPos.row, this.endPos.col);
+        }
+        
         // 방문 기록 초기화
         this.visited = [];
         for (let i = 0; i < this.rows; i++) {
@@ -311,8 +334,19 @@ class MazeGame {
         this.path = [];
         this.moveCount = 0;
         this.gameWon = false;
+        this.gameOver = false;
         document.getElementById('moveCount').textContent = '0';
         document.getElementById('winMessage').classList.add('hidden');
+        document.getElementById('gameOverMessage').classList.add('hidden');
+        
+        // 공포 모드가 활성화되어 있으면 괴물 초기화
+        if (this.horrorMode && this.monster) {
+            this.initializeMonster();
+            this.startMonsterMovement();
+        } else if (this.monster) {
+            this.stopMonsterMovement();
+            this.removeMonster();
+        }
         
         // 3D 미로도 업데이트
         if (this.viewMode === '3D' && this.scene) {
@@ -320,10 +354,142 @@ class MazeGame {
         }
     }
 
+    // BFS로 시작점에서 끝점까지 경로가 있는지 확인
+    hasPath(startRow, startCol, endRow, endCol) {
+        if (this.maze[startRow][startCol] === 1 || this.maze[endRow][endCol] === 1) {
+            return false;
+        }
+        
+        const queue = [[startRow, startCol]];
+        const visited = new Set();
+        visited.add(`${startRow},${startCol}`);
+        
+        const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+        
+        while (queue.length > 0) {
+            const [row, col] = queue.shift();
+            
+            if (row === endRow && col === endCol) {
+                return true;
+            }
+            
+            for (const [dr, dc] of directions) {
+                const newRow = row + dr;
+                const newCol = col + dc;
+                const key = `${newRow},${newCol}`;
+                
+                if (newRow >= 0 && newRow < this.rows &&
+                    newCol >= 0 && newCol < this.cols &&
+                    !visited.has(key) &&
+                    this.maze[newRow][newCol] === 0) {
+                    visited.add(key);
+                    queue.push([newRow, newCol]);
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    // 시작점에서 끝점까지 경로 강제 생성
+    createPath(startRow, startCol, endRow, endCol) {
+        // A* 알고리즘을 사용하여 최단 경로 생성
+        const openSet = [{ row: startRow, col: startCol, g: 0, h: 0, f: 0 }];
+        const cameFrom = new Map();
+        const gScore = new Map();
+        const fScore = new Map();
+        
+        const getKey = (row, col) => `${row},${col}`;
+        const heuristic = (row1, col1, row2, col2) => Math.abs(row1 - row2) + Math.abs(col1 - col2);
+        
+        gScore.set(getKey(startRow, startCol), 0);
+        fScore.set(getKey(startRow, startCol), heuristic(startRow, startCol, endRow, endCol));
+        
+        const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+        
+        while (openSet.length > 0) {
+            // f 점수가 가장 낮은 노드 선택
+            openSet.sort((a, b) => a.f - b.f);
+            const current = openSet.shift();
+            const currentKey = getKey(current.row, current.col);
+            
+            if (current.row === endRow && current.col === endCol) {
+                // 경로 재구성
+                const path = [];
+                let node = current;
+                while (node) {
+                    path.push(node);
+                    const nodeKey = getKey(node.row, node.col);
+                    node = cameFrom.get(nodeKey);
+                }
+                
+                // 경로를 따라 벽 제거
+                for (const node of path) {
+                    this.maze[node.row][node.col] = 0;
+                    // 주변 벽도 일부 제거하여 더 넓은 경로 생성
+                    for (const [dr, dc] of directions) {
+                        const newRow = node.row + dr;
+                        const newCol = node.col + dc;
+                        if (newRow > 0 && newRow < this.rows - 1 &&
+                            newCol > 0 && newCol < this.cols - 1 &&
+                            Math.random() < 0.3) { // 30% 확률로 주변 벽도 제거
+                            this.maze[newRow][newCol] = 0;
+                        }
+                    }
+                }
+                return;
+            }
+            
+            for (const [dr, dc] of directions) {
+                const neighborRow = current.row + dr;
+                const neighborCol = current.col + dc;
+                const neighborKey = getKey(neighborRow, neighborCol);
+                
+                if (neighborRow < 0 || neighborRow >= this.rows ||
+                    neighborCol < 0 || neighborCol >= this.cols) {
+                    continue;
+                }
+                
+                // 벽이면 제거 비용이 더 높음
+                const tentativeG = gScore.get(currentKey) + (this.maze[neighborRow][neighborCol] === 1 ? 10 : 1);
+                
+                if (!gScore.has(neighborKey) || tentativeG < gScore.get(neighborKey)) {
+                    cameFrom.set(neighborKey, current);
+                    gScore.set(neighborKey, tentativeG);
+                    const h = heuristic(neighborRow, neighborCol, endRow, endCol);
+                    const f = tentativeG + h;
+                    fScore.set(neighborKey, f);
+                    
+                    if (!openSet.some(n => n.row === neighborRow && n.col === neighborCol)) {
+                        openSet.push({ row: neighborRow, col: neighborCol, g: tentativeG, h: h, f: f });
+                    }
+                }
+            }
+        }
+        
+        // A* 실패 시 단순 경로 생성
+        let row = startRow;
+        let col = startCol;
+        
+        // 먼저 행을 맞춤
+        while (row !== endRow) {
+            this.maze[row][col] = 0;
+            row += row < endRow ? 1 : -1;
+            this.maze[row][col] = 0;
+        }
+        
+        // 그 다음 열을 맞춤
+        while (col !== endCol) {
+            this.maze[row][col] = 0;
+            col += col < endCol ? 1 : -1;
+            this.maze[row][col] = 0;
+        }
+    }
+
     setupEventListeners() {
         // 키보드 이벤트 - 키 누름
         document.addEventListener('keydown', (e) => {
-            if (this.gameWon) return;
+            if (this.gameWon || this.gameOver) return;
             
             const key = e.key.toLowerCase();
             const isMovementKey = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key);
@@ -452,6 +618,23 @@ class MazeGame {
             }
         });
 
+        // 공포 모드 토글
+        document.getElementById('horrorModeToggle').addEventListener('change', (e) => {
+            const wasEnabled = this.horrorMode;
+            this.horrorMode = e.target.checked;
+            
+            if (this.horrorMode && !wasEnabled) {
+                // 공포 모드 활성화 시 게임 재시작
+                this.resetGame();
+                this.initializeMonster();
+                this.startMonsterMovement();
+            } else if (!this.horrorMode && wasEnabled) {
+                // 공포 모드 비활성화 시 괴물 제거
+                this.stopMonsterMovement();
+                this.removeMonster();
+            }
+        });
+
         // 리셋 버튼
         document.getElementById('resetBtn').addEventListener('click', () => {
             this.resetGame();
@@ -499,6 +682,16 @@ class MazeGame {
                 this.draw();
             } else {
                 this.create3DMaze(true); // 새 미로이므로 위치 리셋
+            }
+        });
+
+        // 게임 오버 후 다시 하기 버튼
+        document.getElementById('restartAfterGameOverBtn').addEventListener('click', () => {
+            document.getElementById('gameOverMessage').classList.add('hidden');
+            this.resetGame();
+            if (this.horrorMode) {
+                this.initializeMonster();
+                this.startMonsterMovement();
             }
         });
     }
@@ -587,17 +780,16 @@ class MazeGame {
         // 승리 체크
         if (newRow === this.endPos.row && newCol === this.endPos.col) {
             this.gameWon = true;
+            if (this.horrorMode) {
+                this.stopMonsterMovement();
+            }
             document.getElementById('finalMoveCount').textContent = this.moveCount;
             document.getElementById('winMessage').classList.remove('hidden');
         }
 
-        this.draw();
-
-        // 승리 체크
-        if (newRow === this.endPos.row && newCol === this.endPos.col) {
-            this.gameWon = true;
-            document.getElementById('finalMoveCount').textContent = this.moveCount;
-            document.getElementById('winMessage').classList.remove('hidden');
+        // 괴물 충돌 체크
+        if (this.horrorMode && this.monster) {
+            this.checkMonsterCollision();
         }
 
         this.draw();
@@ -663,6 +855,42 @@ class MazeGame {
             Math.PI * 2
         );
         this.ctx.fill();
+
+        // 괴물 (공포 모드일 때만)
+        if (this.horrorMode && this.monster) {
+            const monsterX = this.monster.col * this.cellSize;
+            const monsterY = this.monster.row * this.cellSize;
+            this.ctx.fillStyle = '#8b0000'; // 어두운 빨간색
+            this.ctx.beginPath();
+            this.ctx.arc(
+                monsterX + this.cellSize / 2,
+                monsterY + this.cellSize / 2,
+                this.cellSize * 0.4,
+                0,
+                Math.PI * 2
+            );
+            this.ctx.fill();
+            // 괴물 눈 표시
+            this.ctx.fillStyle = '#ff0000';
+            this.ctx.beginPath();
+            this.ctx.arc(
+                monsterX + this.cellSize / 2 - this.cellSize * 0.15,
+                monsterY + this.cellSize / 2 - this.cellSize * 0.1,
+                this.cellSize * 0.08,
+                0,
+                Math.PI * 2
+            );
+            this.ctx.fill();
+            this.ctx.beginPath();
+            this.ctx.arc(
+                monsterX + this.cellSize / 2 + this.cellSize * 0.15,
+                monsterY + this.cellSize / 2 - this.cellSize * 0.1,
+                this.cellSize * 0.08,
+                0,
+                Math.PI * 2
+            );
+            this.ctx.fill();
+        }
     }
 
     setup3D() {
@@ -1008,6 +1236,12 @@ class MazeGame {
         );
         this.scene.add(this.startMarker);
 
+        // 괴물 제거 (재생성 전)
+        if (this.monster3D) {
+            this.scene.remove(this.monster3D);
+            this.monster3D = null;
+        }
+
         // 끝점 마커
         const endGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16);
         const endMaterial = new THREE.MeshStandardMaterial({ color: 0xe74c3c });
@@ -1049,6 +1283,11 @@ class MazeGame {
         
         // 지나온 길 마커 생성
         this.update3DPathMarkers();
+
+        // 공포 모드일 때 괴물 생성
+        if (this.horrorMode) {
+            this.createMonster3D();
+        }
     }
     
     add3DPathMarker(row, col) {
@@ -1160,11 +1399,17 @@ class MazeGame {
                 // 승리 체크
                 if (row === this.endPos.row && col === this.endPos.col) {
                     this.gameWon = true;
+                    this.stopMonsterMovement();
                     document.getElementById('finalMoveCount').textContent = this.moveCount;
                     document.getElementById('winMessage').classList.remove('hidden');
                     if (this.isPointerLocked) {
                         document.exitPointerLock();
                     }
+                }
+                
+                // 괴물 충돌 체크
+                if (this.horrorMode && this.monster) {
+                    this.checkMonsterCollision();
                 }
             }
         }
@@ -1205,6 +1450,222 @@ class MazeGame {
             this.create3DMaze(false);
             console.log('3D maze created, camera:', this.camera);
         }, 100);
+        
+        // 공포 모드가 활성화되어 있으면 괴물 이동 계속
+        if (this.horrorMode) {
+            this.startMonsterMovement();
+        }
+    }
+
+    // 괴물 초기화
+    initializeMonster() {
+        // 괴물을 끝점 근처에 배치
+        this.monster.row = this.endPos.row;
+        this.monster.col = this.endPos.col;
+        this.monster.direction = null;
+        
+        // 3D 괴물 생성
+        if (this.viewMode === '3D' && this.scene) {
+            this.createMonster3D();
+        }
+    }
+
+    // 괴물 이동 시작
+    startMonsterMovement() {
+        if (!this.horrorMode) return;
+        
+        this.stopMonsterMovement();
+        
+        this.monster.moveTimer = setInterval(() => {
+            if (this.gameWon || this.gameOver || !this.horrorMode) {
+                this.stopMonsterMovement();
+                return;
+            }
+            
+            this.moveMonster();
+        }, this.monster.moveInterval);
+    }
+
+    // 괴물 이동 중지
+    stopMonsterMovement() {
+        if (this.monster && this.monster.moveTimer) {
+            clearInterval(this.monster.moveTimer);
+            this.monster.moveTimer = null;
+        }
+    }
+
+    // 괴물 이동 로직
+    moveMonster() {
+        if (!this.monster || !this.maze) return;
+        
+        const directions = [
+            [0, 1],   // 오른쪽
+            [1, 0],   // 아래
+            [0, -1],  // 왼쪽
+            [-1, 0]   // 위
+        ];
+        
+        // 현재 방향이 없거나 막혔으면 새 방향 선택
+        if (!this.monster.direction || this.isMonsterBlocked()) {
+            const availableDirections = [];
+            
+            for (const [dr, dc] of directions) {
+                const newRow = this.monster.row + dr;
+                const newCol = this.monster.col + dc;
+                
+                if (newRow >= 0 && newRow < this.rows &&
+                    newCol >= 0 && newCol < this.cols &&
+                    this.maze[newRow] && this.maze[newRow][newCol] === 0) {
+                    availableDirections.push([dr, dc]);
+                }
+            }
+            
+            if (availableDirections.length > 0) {
+                // 랜덤하게 방향 선택 (플레이어 쪽으로 약간 치우치게)
+                const playerDir = this.getDirectionToPlayer();
+                if (playerDir && availableDirections.some(d => d[0] === playerDir[0] && d[1] === playerDir[1])) {
+                    // 플레이어 방향이 가능하면 60% 확률로 선택
+                    if (Math.random() < 0.6) {
+                        this.monster.direction = playerDir;
+                    } else {
+                        this.monster.direction = availableDirections[Math.floor(Math.random() * availableDirections.length)];
+                    }
+                } else {
+                    this.monster.direction = availableDirections[Math.floor(Math.random() * availableDirections.length)];
+                }
+            }
+        }
+        
+        // 이동
+        if (this.monster.direction) {
+            const [dr, dc] = this.monster.direction;
+            const newRow = this.monster.row + dr;
+            const newCol = this.monster.col + dc;
+            
+            if (newRow >= 0 && newRow < this.rows &&
+                newCol >= 0 && newCol < this.cols &&
+                this.maze[newRow] && this.maze[newRow][newCol] === 0) {
+                this.monster.row = newRow;
+                this.monster.col = newCol;
+                
+                // 3D 괴물 위치 업데이트
+                if (this.viewMode === '3D' && this.monster3D) {
+                    this.updateMonster3DPos();
+                }
+                
+                // 충돌 체크
+                this.checkMonsterCollision();
+                
+                // 렌더링 업데이트
+                if (this.viewMode === '2D') {
+                    this.draw();
+                }
+            } else {
+                // 막혔으면 방향 초기화
+                this.monster.direction = null;
+            }
+        }
+    }
+
+    // 괴물이 막혔는지 확인
+    isMonsterBlocked() {
+        if (!this.monster || !this.monster.direction) return true;
+        
+        const [dr, dc] = this.monster.direction;
+        const newRow = this.monster.row + dr;
+        const newCol = this.monster.col + dc;
+        
+        return !(newRow >= 0 && newRow < this.rows &&
+                 newCol >= 0 && newCol < this.cols &&
+                 this.maze[newRow] && this.maze[newRow][newCol] === 0);
+    }
+
+    // 플레이어 방향 계산
+    getDirectionToPlayer() {
+        if (!this.monster || !this.playerPos) return null;
+        
+        const dr = this.playerPos.row - this.monster.row;
+        const dc = this.playerPos.col - this.monster.col;
+        
+        // 가장 가까운 방향 반환
+        if (Math.abs(dr) > Math.abs(dc)) {
+            return dr > 0 ? [1, 0] : [-1, 0];
+        } else {
+            return dc > 0 ? [0, 1] : [0, -1];
+        }
+    }
+
+    // 괴물과 플레이어 충돌 체크
+    checkMonsterCollision() {
+        if (!this.monster || !this.playerPos) return;
+        
+        if (this.monster.row === this.playerPos.row && 
+            this.monster.col === this.playerPos.col) {
+            this.gameOver = true;
+            this.stopMonsterMovement();
+            document.getElementById('gameOverMessage').classList.remove('hidden');
+        }
+    }
+
+    // 괴물 제거
+    removeMonster() {
+        this.stopMonsterMovement();
+        if (this.viewMode === '3D' && this.scene && this.monster3D) {
+            this.scene.remove(this.monster3D);
+            this.monster3D = null;
+        }
+    }
+
+    // 3D 괴물 생성
+    createMonster3D() {
+        if (!this.scene || !this.horrorMode || !this.monster) return;
+        
+        // 기존 괴물 제거
+        if (this.monster3D) {
+            this.scene.remove(this.monster3D);
+        }
+        
+        const cellSize = 1;
+        const offset = (this.cols - 1) / 2;
+        const x = (this.monster.col - offset) * cellSize;
+        const z = (this.monster.row - offset) * cellSize;
+        
+        // 괴물 지오메트리 (큰 원기둥)
+        const geometry = new THREE.CylinderGeometry(0.4, 0.4, 1.5, 16);
+        const material = new THREE.MeshStandardMaterial({ 
+            color: 0x8b0000,
+            emissive: 0x440000 // 약간의 빛 발산
+        });
+        this.monster3D = new THREE.Mesh(geometry, material);
+        this.monster3D.position.set(x, 0.75, z);
+        this.scene.add(this.monster3D);
+        
+        // 눈 추가
+        const eyeGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+        const eyeMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xff0000,
+            emissive: 0xff0000
+        });
+        
+        const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        leftEye.position.set(-0.15, 0.3, 0.4);
+        this.monster3D.add(leftEye);
+        
+        const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        rightEye.position.set(0.15, 0.3, 0.4);
+        this.monster3D.add(rightEye);
+    }
+
+    // 3D 괴물 위치 업데이트
+    updateMonster3DPos() {
+        if (!this.monster3D || !this.horrorMode || !this.monster) return;
+        
+        const cellSize = 1;
+        const offset = (this.cols - 1) / 2;
+        const x = (this.monster.col - offset) * cellSize;
+        const z = (this.monster.row - offset) * cellSize;
+        
+        this.monster3D.position.set(x, 0.75, z);
     }
 
     resetGame() {
@@ -1221,8 +1682,19 @@ class MazeGame {
         this.path = [];
         this.moveCount = 0;
         this.gameWon = false;
+        this.gameOver = false;
         document.getElementById('moveCount').textContent = '0';
         document.getElementById('winMessage').classList.add('hidden');
+        document.getElementById('gameOverMessage').classList.add('hidden');
+        
+        // 공포 모드가 활성화되어 있으면 괴물 재초기화
+        if (this.horrorMode) {
+            this.initializeMonster();
+            this.startMonsterMovement();
+        } else {
+            this.stopMonsterMovement();
+            this.removeMonster();
+        }
         
         // 3D 모드에서 지나온 길 마커 제거
         if (this.viewMode === '3D' && this.scene) {

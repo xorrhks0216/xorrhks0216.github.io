@@ -48,6 +48,10 @@
                     지나온 길 표시
                 </label>
                 <label class="option-label">
+                    <input type="checkbox" id="horrorModeToggle">
+                    공포 모드
+                </label>
+                <label class="option-label">
                     <input type="radio" name="viewMode" id="view2D" value="2D" checked>
                     2D 보기
                 </label>
@@ -79,6 +83,12 @@
             <h2>축하합니다! 미로를 탈출했습니다!</h2>
             <p>이동 횟수: <span id="finalMoveCount">0</span></p>
             <button id="playAgainBtn" class="action-btn">다시 하기</button>
+        </div>
+
+        <div id="gameOverMessage" class="win-message hidden">
+            <h2>게임 오버</h2>
+            <p>괴물에게 잡혔습니다!</p>
+            <button id="restartAfterGameOverBtn" class="action-btn">다시 하기</button>
         </div>
     </div>
 
