@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>픽셀 아트 변환기</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --background-color: #f5f6fa;
+            --text-color: #2c3e50;
+            --card-background: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f6fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            color: var(--text-color);
+            opacity: 0.8;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+        }
+
+        .upload-section {
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .upload-area {
+            border: 3px dashed var(--secondary-color);
+            border-radius: 10px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .upload-area:hover {
+            background: rgba(52, 152, 219, 0.1);
+            border-color: #2980b9;
+        }
+
+        .upload-area.dragover {
+            background: rgba(52, 152, 219, 0.2);
+            border-color: #2980b9;
+            transform: scale(1.02);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.6;
+        }
+
+        .controls {
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .controls.active {
+            display: block;
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            cursor: pointer;
+            border: none;
+        }
+
+        .value-display {
+            min-width: 60px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .size-controls {
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .size-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-size {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--secondary-color);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 60px;
+        }
+
+        .btn-size:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-size.active {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .pixel-info {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .pixel-info-text {
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        .pixel-info-text strong {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+
+        .preview-section {
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .preview-section.active {
+            display: block;
+        }
+
+        .preview-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .preview-item {
+            text-align: center;
+        }
+
+        .preview-item h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        #pixelCanvas {
+            display: none;
+        }
+
+        #displayCanvas {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #2980b9;
+        }
+
+        @media (max-width: 768px) {
+            .preview-container {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #3498db;
+                --secondary-color: #e74c3c;
+                --background-color: #1a1a1a;
+                --text-color: #ffffff;
+                --card-background: #2c2c2c;
+            }
+
+            body {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+            }
+
+            canvas {
+                border-color: #444;
+                background: #1a1a1a;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 프로젝트 목록으로 돌아가기</a>
+        
+        <header>
+            <h1>픽셀 아트 변환기</h1>
+            <p class="description">이미지를 업로드하면 픽셀 스타일로 변환해드립니다!</p>
+        </header>
+
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">이미지를 드래그하거나 클릭하여 업로드</div>
+                <div class="upload-hint">JPG, PNG, GIF 파일을 지원합니다</div>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+        </div>
+
+        <div class="controls" id="controls">
+            <div class="control-group">
+                <label for="pixelSize">픽셀 크기</label>
+                <div class="slider-container">
+                    <input type="range" id="pixelSize" min="2" max="20" value="8">
+                    <span class="value-display" id="pixelSizeValue">8</span>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" id="convertBtn">변환하기</button>
+                <button class="btn-secondary" id="resetBtn">초기화</button>
+            </div>
+        </div>
+
+        <div class="size-controls" id="sizeControls" style="display: none;">
+            <div class="control-group">
+                <label for="outputSize">출력 크기</label>
+                <div class="slider-container">
+                    <input type="range" id="outputSize" min="10" max="100" value="100">
+                    <span class="value-display" id="outputSizeValue">100%</span>
+                </div>
+                <div class="pixel-info">
+                    <span class="pixel-info-text">한 픽셀 크기: <strong id="pixelSizeInfo">-</strong>px</span>
+                </div>
+                <div class="size-buttons">
+                    <button class="btn-size" data-size="25">25%</button>
+                    <button class="btn-size" data-size="50">50%</button>
+                    <button class="btn-size" data-size="75">75%</button>
+                    <button class="btn-size" data-size="100">100%</button>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" id="downloadBtn">다운로드</button>
+            </div>
+        </div>
+
+        <div class="preview-section" id="previewSection">
+            <div class="preview-container">
+                <div class="preview-item">
+                    <h3>원본 이미지</h3>
+                    <canvas id="originalCanvas"></canvas>
+                </div>
+                <div class="preview-item">
+                    <h3>픽셀 아트</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="pixelCanvas"></canvas>
+                        <canvas id="displayCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const controls = document.getElementById('controls');
+        const sizeControls = document.getElementById('sizeControls');
+        const previewSection = document.getElementById('previewSection');
+        const originalCanvas = document.getElementById('originalCanvas');
+        const pixelCanvas = document.getElementById('pixelCanvas');
+        const displayCanvas = document.getElementById('displayCanvas');
+        const pixelSizeSlider = document.getElementById('pixelSize');
+        const pixelSizeValue = document.getElementById('pixelSizeValue');
+        const outputSizeSlider = document.getElementById('outputSize');
+        const outputSizeValue = document.getElementById('outputSizeValue');
+        const pixelSizeInfo = document.getElementById('pixelSizeInfo');
+        const convertBtn = document.getElementById('convertBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const sizeButtons = document.querySelectorAll('.btn-size');
+
+        let originalImage = null;
+        let originalCtx = originalCanvas.getContext('2d');
+        let pixelCtx = pixelCanvas.getContext('2d');
+        let displayCtx = displayCanvas.getContext('2d');
+
+        // 업로드 영역 클릭
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 파일 선택
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+
+        // 드래그 앤 드롭
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleFile(file);
+            }
+        });
+
+        // 파일 처리
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    displayOriginalImage(img);
+                    controls.classList.add('active');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 원본 이미지 표시
+        function displayOriginalImage(img) {
+            const maxWidth = 500;
+            const maxHeight = 500;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxWidth || height > maxHeight) {
+                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                width = width * ratio;
+                height = height * ratio;
+            }
+
+            originalCanvas.width = width;
+            originalCanvas.height = height;
+            originalCtx.drawImage(img, 0, 0, width, height);
+        }
+
+        // 픽셀 크기 슬라이더 업데이트
+        pixelSizeSlider.addEventListener('input', (e) => {
+            pixelSizeValue.textContent = e.target.value;
+        });
+
+        // 변환하기
+        convertBtn.addEventListener('click', () => {
+            if (!originalImage) return;
+            
+            const pixelSize = parseInt(pixelSizeSlider.value);
+            pixelizeImage(originalImage, pixelSize);
+            previewSection.classList.add('active');
+            sizeControls.style.display = 'block';
+            updateDisplaySize(100);
+        });
+
+        // 픽셀화 함수
+        function pixelizeImage(img, pixelSize) {
+            const maxWidth = 500;
+            const maxHeight = 500;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxWidth || height > maxHeight) {
+                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                width = width * ratio;
+                height = height * ratio;
+            }
+
+            // 작은 캔버스에 이미지 그리기 (픽셀화를 위해)
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            const smallWidth = Math.floor(width / pixelSize);
+            const smallHeight = Math.floor(height / pixelSize);
+            
+            tempCanvas.width = smallWidth;
+            tempCanvas.height = smallHeight;
+            tempCtx.drawImage(img, 0, 0, smallWidth, smallHeight);
+
+            // 픽셀 데이터 가져오기
+            const imageData = tempCtx.getImageData(0, 0, smallWidth, smallHeight);
+            const data = imageData.data;
+
+            // 최종 캔버스 설정 (원본 크기 유지)
+            pixelCanvas.width = smallWidth * pixelSize;
+            pixelCanvas.height = smallHeight * pixelSize;
+
+            // 각 픽셀을 큰 블록으로 그리기
+            for (let y = 0; y < smallHeight; y++) {
+                for (let x = 0; x < smallWidth; x++) {
+                    const index = (y * smallWidth + x) * 4;
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
+                    const a = data[index + 3];
+
+                    pixelCtx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+                    pixelCtx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                }
+            }
+
+            // 초기 표시 크기 설정
+            updateDisplaySize(100);
+            updatePixelSizeInfo(100);
+        }
+
+        // 표시 크기 업데이트
+        function updateDisplaySize(percentage) {
+            const scale = percentage / 100;
+            const sourceWidth = pixelCanvas.width;
+            const sourceHeight = pixelCanvas.height;
+            
+            displayCanvas.width = Math.floor(sourceWidth * scale);
+            displayCanvas.height = Math.floor(sourceHeight * scale);
+            
+            displayCtx.imageSmoothingEnabled = false;
+            displayCtx.drawImage(pixelCanvas, 0, 0, displayCanvas.width, displayCanvas.height);
+            
+            // 한 픽셀의 실제 크기 업데이트
+            updatePixelSizeInfo(percentage);
+        }
+
+        // 한 픽셀의 실제 크기 정보 업데이트
+        function updatePixelSizeInfo(percentage) {
+            const pixelSize = parseInt(pixelSizeSlider.value);
+            const actualPixelSize = pixelSize * (percentage / 100);
+            pixelSizeInfo.textContent = actualPixelSize.toFixed(2);
+        }
+
+        // 출력 크기 슬라이더 업데이트
+        outputSizeSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            outputSizeValue.textContent = value + '%';
+            updateDisplaySize(value);
+            updatePixelSizeInfo(value);
+        });
+
+        // 크기 버튼 클릭
+        sizeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const size = parseInt(btn.dataset.size);
+                outputSizeSlider.value = size;
+                outputSizeValue.textContent = size + '%';
+                updateDisplaySize(size);
+                updatePixelSizeInfo(size);
+                
+                // 활성 버튼 표시
+                sizeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // 다운로드
+        downloadBtn.addEventListener('click', () => {
+            displayCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const size = parseInt(outputSizeSlider.value);
+                a.download = `pixel-art-${size}percent.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
+
+        // 초기화
+        resetBtn.addEventListener('click', () => {
+            originalImage = null;
+            originalCtx.clearRect(0, 0, originalCanvas.width, originalCanvas.height);
+            pixelCtx.clearRect(0, 0, pixelCanvas.width, pixelCanvas.height);
+            displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+            controls.classList.remove('active');
+            sizeControls.style.display = 'none';
+            previewSection.classList.remove('active');
+            fileInput.value = '';
+            pixelSizeSlider.value = 8;
+            pixelSizeValue.textContent = '8';
+            outputSizeSlider.value = 100;
+            outputSizeValue.textContent = '100%';
+            pixelSizeInfo.textContent = '-';
+            sizeButtons.forEach(b => b.classList.remove('active'));
+        });
+    </script>
+</body>
+</html>

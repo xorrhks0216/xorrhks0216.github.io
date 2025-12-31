@@ -57,11 +57,11 @@ class MazeGame {
     generateRandomSize() {
         // 입력된 크기 가져오기 또는 랜덤 생성
         const sizeInput = document.getElementById('mazeSizeInput');
-        let size = parseInt(sizeInput.value) || 20;
+        let size = parseInt(sizeInput.value) || 30;
         
         // 범위 체크 및 홀수 보정
         if (size < 15) size = 15;
-        if (size > 35) size = 35;
+        if (size > 50) size = 50;
         size = size % 2 === 0 ? size + 1 : size;
         
         this.rows = size;
@@ -91,52 +91,206 @@ class MazeGame {
             }
         }
 
-        // DFS 알고리즘으로 미로 생성
-        const stack = [];
+        // Recursive Division + Randomized Prim's 혼합 알고리즘
+        // 더 복잡하고 어려운 미로 생성
+        
+        // 1단계: 모든 홀수 좌표를 길로 초기화
+        for (let i = 1; i < this.rows - 1; i += 2) {
+            for (let j = 1; j < this.cols - 1; j += 2) {
+                this.maze[i][j] = 0;
+            }
+        }
+        
+        // 2단계: Randomized Prim's Algorithm으로 복잡한 경로 생성
+        const walls = [];
         const startRow = 1;
         const startCol = 1;
         
-        this.maze[startRow][startCol] = 0;
-        stack.push([startRow, startCol]);
-
-        const directions = [
-            [0, 2],  // 오른쪽
-            [2, 0],  // 아래
-            [0, -2], // 왼쪽
-            [-2, 0]  // 위
-        ];
-
-        while (stack.length > 0) {
-            const [currentRow, currentCol] = stack[stack.length - 1];
-            const neighbors = [];
-
-            // 방문하지 않은 이웃 찾기
+        // 시작점 주변의 벽을 추가
+        const addWalls = (row, col) => {
+            const directions = [
+                [0, 2], [2, 0], [0, -2], [-2, 0]
+            ];
+            
             for (const [dr, dc] of directions) {
-                const newRow = currentRow + dr;
-                const newCol = currentCol + dc;
-
-                if (
-                    newRow > 0 && newRow < this.rows - 1 &&
-                    newCol > 0 && newCol < this.cols - 1 &&
-                    this.maze[newRow][newCol] === 1
-                ) {
-                    neighbors.push([newRow, newCol, dr, dc]);
+                const wallRow = row + dr / 2;
+                const wallCol = col + dc / 2;
+                const nextRow = row + dr;
+                const nextCol = col + dc;
+                
+                if (nextRow > 0 && nextRow < this.rows - 1 &&
+                    nextCol > 0 && nextCol < this.cols - 1) {
+                    walls.push([wallRow, wallCol, nextRow, nextCol]);
                 }
             }
-
-            if (neighbors.length > 0) {
-                // 랜덤 이웃 선택
-                const [newRow, newCol, dr, dc] = neighbors[
-                    Math.floor(Math.random() * neighbors.length)
-                ];
-                
+        };
+        
+        addWalls(startRow, startCol);
+        const visited = new Set();
+        visited.add(`${startRow},${startCol}`);
+        
+        // Prim's Algorithm: 가중치 기반으로 벽 제거
+        while (walls.length > 0) {
+            // 랜덤하게 벽 선택 (가중치 적용으로 더 복잡한 구조)
+            const randomIndex = Math.floor(Math.pow(Math.random(), 1.5) * walls.length);
+            const [wallRow, wallCol, nextRow, nextCol] = walls[randomIndex];
+            walls.splice(randomIndex, 1);
+            
+            if (!visited.has(`${nextRow},${nextCol}`) && 
+                this.maze[nextRow][nextCol] === 0) {
                 // 벽 제거
-                this.maze[newRow][newCol] = 0;
-                this.maze[currentRow + dr / 2][currentCol + dc / 2] = 0;
+                this.maze[wallRow][wallCol] = 0;
+                visited.add(`${nextRow},${nextCol}`);
+                addWalls(nextRow, nextCol);
+            }
+        }
+        
+        // 3단계: Recursive Division으로 추가 복잡성 부여
+        const recursiveDivision = (minRow, maxRow, minCol, maxCol, depth = 0) => {
+            const width = maxCol - minCol;
+            const height = maxRow - minRow;
+            
+            // 분할할 공간이 충분히 큰 경우에만 실행
+            if (width < 4 || height < 4 || depth > 3) return;
+            
+            // 수평/수직 분할 결정 (더 긴 쪽을 분할)
+            const horizontal = height > width;
+            
+            if (horizontal) {
+                // 수평 분할
+                const possibleRows = [];
+                for (let row = minRow + 2; row < maxRow - 1; row += 2) {
+                    possibleRows.push(row);
+                }
+                if (possibleRows.length === 0) return;
                 
-                stack.push([newRow, newCol]);
+                const wallRow = possibleRows[Math.floor(Math.random() * possibleRows.length)];
+                
+                // 벽 생성 (일부만)
+                for (let col = minCol + 1; col < maxCol; col++) {
+                    if (Math.random() < 0.7) { // 70% 확률로 벽 생성
+                        this.maze[wallRow][col] = 1;
+                    }
+                }
+                
+                // 통로 생성 (최소 1개, 최대 3개)
+                const numPassages = Math.floor(Math.random() * 3) + 1;
+                for (let i = 0; i < numPassages; i++) {
+                    const passageCol = minCol + 1 + Math.floor(Math.random() * (maxCol - minCol - 2));
+                    if (passageCol % 2 === 1) {
+                        this.maze[wallRow][passageCol] = 0;
+                    }
+                }
+                
+                // 재귀적으로 분할
+                if (Math.random() < 0.6) { // 60% 확률로 계속 분할
+                    recursiveDivision(minRow, wallRow, minCol, maxCol, depth + 1);
+                    recursiveDivision(wallRow, maxRow, minCol, maxCol, depth + 1);
+                }
             } else {
-                stack.pop();
+                // 수직 분할
+                const possibleCols = [];
+                for (let col = minCol + 2; col < maxCol - 1; col += 2) {
+                    possibleCols.push(col);
+                }
+                if (possibleCols.length === 0) return;
+                
+                const wallCol = possibleCols[Math.floor(Math.random() * possibleCols.length)];
+                
+                // 벽 생성 (일부만)
+                for (let row = minRow + 1; row < maxRow; row++) {
+                    if (Math.random() < 0.7) { // 70% 확률로 벽 생성
+                        this.maze[row][wallCol] = 1;
+                    }
+                }
+                
+                // 통로 생성 (최소 1개, 최대 3개)
+                const numPassages = Math.floor(Math.random() * 3) + 1;
+                for (let i = 0; i < numPassages; i++) {
+                    const passageRow = minRow + 1 + Math.floor(Math.random() * (maxRow - minRow - 2));
+                    if (passageRow % 2 === 1) {
+                        this.maze[passageRow][wallCol] = 0;
+                    }
+                }
+                
+                // 재귀적으로 분할
+                if (Math.random() < 0.6) { // 60% 확률로 계속 분할
+                    recursiveDivision(minRow, maxRow, minCol, wallCol, depth + 1);
+                    recursiveDivision(minRow, maxRow, wallCol, maxCol, depth + 1);
+                }
+            }
+        };
+        
+        // 미로 크기가 충분히 크면 Recursive Division 적용
+        if (this.rows >= 21 && this.cols >= 21) {
+            recursiveDivision(1, this.rows - 1, 1, this.cols - 1);
+        }
+        
+        // 4단계: 추가 루프 생성으로 복잡도 증가
+        const loopCount = Math.floor((this.rows * this.cols) / 150); // 미로 크기에 비례
+        
+        for (let i = 0; i < loopCount; i++) {
+            const row = Math.floor(Math.random() * (this.rows - 2)) + 1;
+            const col = Math.floor(Math.random() * (this.cols - 2)) + 1;
+            
+            if (this.maze[row][col] === 1) {
+                // 주변에 2개 이상의 길이 있는 경우에만 벽 제거
+                let pathCount = 0;
+                const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+                
+                for (const [dr, dc] of directions) {
+                    const newRow = row + dr;
+                    const newCol = col + dc;
+                    if (newRow >= 0 && newRow < this.rows &&
+                        newCol >= 0 && newCol < this.cols &&
+                        this.maze[newRow][newCol] === 0) {
+                        pathCount++;
+                    }
+                }
+                
+                if (pathCount >= 2 && Math.random() < 0.5) {
+                    this.maze[row][col] = 0;
+                }
+            }
+        }
+        
+        // 5단계: 막다른 길 확장 (더 긴 잘못된 경로 생성)
+        const deadEndExtensions = Math.floor((this.rows * this.cols) / 200);
+        
+        for (let i = 0; i < deadEndExtensions; i++) {
+            // 막다른 길 찾기
+            for (let row = 1; row < this.rows - 1; row++) {
+                for (let col = 1; col < this.cols - 1; col++) {
+                    if (this.maze[row][col] === 0) {
+                        let wallCount = 0;
+                        const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+                        
+                        for (const [dr, dc] of directions) {
+                            if (this.maze[row + dr][col + dc] === 1) {
+                                wallCount++;
+                            }
+                        }
+                        
+                        // 막다른 길(3면이 벽)에서 랜덤하게 확장
+                        if (wallCount === 3 && Math.random() < 0.3) {
+                            for (const [dr, dc] of directions) {
+                                const newRow = row + dr * 2;
+                                const newCol = col + dc * 2;
+                                const midRow = row + dr;
+                                const midCol = col + dc;
+                                
+                                if (newRow > 0 && newRow < this.rows - 1 &&
+                                    newCol > 0 && newCol < this.cols - 1 &&
+                                    this.maze[newRow][newCol] === 1 &&
+                                    this.maze[midRow][midCol] === 1) {
+                                    this.maze[midRow][midCol] = 0;
+                                    this.maze[newRow][newCol] = 0;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -316,9 +470,9 @@ class MazeGame {
         
         // 크기 입력 변경 시
         document.getElementById('mazeSizeInput').addEventListener('change', (e) => {
-            let size = parseInt(e.target.value) || 20;
+            let size = parseInt(e.target.value) || 30;
             if (size < 15) size = 15;
-            if (size > 35) size = 35;
+            if (size > 50) size = 50;
             size = size % 2 === 0 ? size + 1 : size;
             e.target.value = size;
         });
