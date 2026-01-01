@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전세계 시계</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --background-color: #f5f6fa;
+            --text-color: #2c3e50;
+            --card-background: #ffffff;
+            --hover-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
+            --danger-color: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, #f5f6fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .description {
+            color: var(--text-color);
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            max-width: 600px;
+            margin: 0 auto;
+            opacity: 0.8;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .add-button {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .add-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .add-button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .api-key-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .api-key-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            width: 200px;
+        }
+
+        .api-key-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .clocks-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .clock-card {
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            position: relative;
+            min-width: 280px;
+            flex: 1 1 300px;
+            max-width: 350px;
+        }
+
+        .clock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .clock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .clock-city {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .clock-timezone {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 0.25rem;
+        }
+
+        .menu-button {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #95a5a6;
+            padding: 0.25rem;
+            line-height: 1;
+            transition: all 0.2s ease;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .menu-button:hover {
+            color: var(--primary-color);
+            background: rgba(44, 62, 80, 0.1);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 120px;
+            padding: 0.5rem 0;
+            margin-top: 0.25rem;
+            display: none;
+            z-index: 100;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+
+        .dropdown-item.delete {
+            color: var(--danger-color);
+        }
+
+        .clock-time {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin: 1rem 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .clock-date {
+            font-size: 1rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-bottom: 1rem;
+        }
+
+        .weather-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .weather-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .weather-icon {
+            font-size: 2rem;
+        }
+
+        .weather-details {
+            flex: 1;
+        }
+
+        .weather-temp {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .weather-desc {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .weather-loading {
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+
+        .weather-error {
+            color: var(--danger-color);
+            font-size: 0.9rem;
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #95a5a6;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--danger-color);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .city-search {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .city-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .city-item {
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .city-item:hover {
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .city-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .city-name {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .city-timezone {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 0.25rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #95a5a6;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-text {
+            font-size: 1.1rem;
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            .clocks-container {
+                gap: 1rem;
+            }
+
+            .clock-card {
+                min-width: 100%;
+                max-width: 100%;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .api-key-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .api-key-input {
+                width: 100%;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 다크모드 지원 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #3498db;
+                --secondary-color: #e74c3c;
+                --background-color: #1a1a1a;
+                --text-color: #ffffff;
+                --card-background: #2c2c2c;
+            }
+
+            body {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+            }
+
+            .city-search {
+                background: #1a1a1a;
+                border-color: #444;
+                color: var(--text-color);
+            }
+
+            .api-key-input {
+                background: #1a1a1a;
+                border-color: #444;
+                color: var(--text-color);
+            }
+
+            .weather-section {
+                border-top-color: #444;
+            }
+
+            .dropdown-menu {
+                background: #2c2c2c;
+                border-color: #444;
+            }
+
+            .dropdown-item {
+                color: var(--text-color);
+            }
+
+            .dropdown-item:hover {
+                background: rgba(231, 76, 60, 0.2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>전세계 시계</h1>
+            <p class="description">원하는 도시를 추가하여 전세계 여러 지역의 현재 시간을 한 번에 확인하세요.</p>
+        </header>
+
+        <div class="controls">
+            <button class="add-button" id="addButton">
+                <span>+</span>
+                <span>도시 추가</span>
+            </button>
+            <div class="api-key-section">
+                <label class="api-key-label" for="apiKeyInput">날씨 API 키:</label>
+                <input type="text" class="api-key-input" id="apiKeyInput" placeholder="OpenWeatherMap API 키 (선택사항)">
+            </div>
+        </div>
+
+        <div class="clocks-container" id="clocksContainer">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-state-icon">🕐</div>
+                <div class="empty-state-text">도시를 추가하여 시계를 시작하세요</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 도시 선택 모달 -->
+    <div class="modal" id="cityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">도시 선택</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <input type="text" class="city-search" id="citySearch" placeholder="도시 검색...">
+            <div class="city-list" id="cityList"></div>
+        </div>
+    </div>
+
+    <script>
+        // 주요 도시 목록 (도시명, 타임존, 위도, 경도)
+        const cities = [
+            { name: '서울', timezone: 'Asia/Seoul', lat: 37.5665, lon: 126.9780 },
+            { name: '도쿄', timezone: 'Asia/Tokyo', lat: 35.6762, lon: 139.6503 },
+            { name: '베이징', timezone: 'Asia/Shanghai', lat: 39.9042, lon: 116.4074 },
+            { name: '홍콩', timezone: 'Asia/Hong_Kong', lat: 22.3193, lon: 114.1694 },
+            { name: '싱가포르', timezone: 'Asia/Singapore', lat: 1.3521, lon: 103.8198 },
+            { name: '뭄바이', timezone: 'Asia/Kolkata', lat: 19.0760, lon: 72.8777 },
+            { name: '두바이', timezone: 'Asia/Dubai', lat: 25.2048, lon: 55.2708 },
+            { name: '모스크바', timezone: 'Europe/Moscow', lat: 55.7558, lon: 37.6173 },
+            { name: '런던', timezone: 'Europe/London', lat: 51.5074, lon: -0.1278 },
+            { name: '파리', timezone: 'Europe/Paris', lat: 48.8566, lon: 2.3522 },
+            { name: '베를린', timezone: 'Europe/Berlin', lat: 52.5200, lon: 13.4050 },
+            { name: '로마', timezone: 'Europe/Rome', lat: 41.9028, lon: 12.4964 },
+            { name: '마드리드', timezone: 'Europe/Madrid', lat: 40.4168, lon: -3.7038 },
+            { name: '암스테르담', timezone: 'Europe/Amsterdam', lat: 52.3676, lon: 4.9041 },
+            { name: '뉴욕', timezone: 'America/New_York', lat: 40.7128, lon: -74.0060 },
+            { name: '로스앤젤레스', timezone: 'America/Los_Angeles', lat: 34.0522, lon: -118.2437 },
+            { name: '시카고', timezone: 'America/Chicago', lat: 41.8781, lon: -87.6298 },
+            { name: '토론토', timezone: 'America/Toronto', lat: 43.6532, lon: -79.3832 },
+            { name: '멕시코시티', timezone: 'America/Mexico_City', lat: 19.4326, lon: -99.1332 },
+            { name: '상파울루', timezone: 'America/Sao_Paulo', lat: -23.5505, lon: -46.6333 },
+            { name: '부에노스아이레스', timezone: 'America/Argentina/Buenos_Aires', lat: -34.6037, lon: -58.3816 },
+            { name: '시드니', timezone: 'Australia/Sydney', lat: -33.8688, lon: 151.2093 },
+            { name: '멜버른', timezone: 'Australia/Melbourne', lat: -37.8136, lon: 144.9631 },
+            { name: '오클랜드', timezone: 'Pacific/Auckland', lat: -36.8485, lon: 174.7633 },
+            { name: '호놀룰루', timezone: 'Pacific/Honolulu', lat: 21.3099, lon: -157.8581 },
+            { name: '카이로', timezone: 'Africa/Cairo', lat: 30.0444, lon: 31.2357 },
+            { name: '요하네스버그', timezone: 'Africa/Johannesburg', lat: -26.2041, lon: 28.0473 },
+            { name: '나이로비', timezone: 'Africa/Nairobi', lat: -1.2921, lon: 36.8219 }
+        ];
+
+        let selectedCities = [];
+        const MAX_CITIES = 8;
+        let updateInterval = null;
+
+        // DOM 요소
+        const addButton = document.getElementById('addButton');
+        const cityModal = document.getElementById('cityModal');
+        const closeModal = document.getElementById('closeModal');
+        const citySearch = document.getElementById('citySearch');
+        const cityList = document.getElementById('cityList');
+        const clocksContainer = document.getElementById('clocksContainer');
+        const emptyState = document.getElementById('emptyState');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+
+        // 로컬 스토리지에서 데이터 불러오기
+        function loadData() {
+            const saved = localStorage.getItem('worldClocks');
+            if (saved) {
+                selectedCities = JSON.parse(saved);
+                renderClocks();
+            }
+            const savedApiKey = localStorage.getItem('weatherApiKey');
+            if (savedApiKey) {
+                apiKeyInput.value = savedApiKey;
+            }
+        }
+
+        // 로컬 스토리지에 데이터 저장
+        function saveData() {
+            localStorage.setItem('worldClocks', JSON.stringify(selectedCities));
+        }
+
+        // API 키 저장
+        apiKeyInput.addEventListener('change', () => {
+            localStorage.setItem('weatherApiKey', apiKeyInput.value);
+            // 기존 시계들의 날씨 정보 업데이트
+            selectedCities.forEach((city, index) => {
+                if (apiKeyInput.value) {
+                    fetchWeather(city, index);
+                }
+            });
+        });
+
+        // 모달 열기
+        addButton.addEventListener('click', () => {
+            if (selectedCities.length >= MAX_CITIES) {
+                alert(`최대 ${MAX_CITIES}개까지만 추가할 수 있습니다.`);
+                return;
+            }
+            cityModal.classList.add('active');
+            renderCityList();
+            citySearch.focus();
+        });
+
+        // 모달 닫기
+        closeModal.addEventListener('click', () => {
+            cityModal.classList.remove('active');
+            citySearch.value = '';
+        });
+
+        // 모달 외부 클릭 시 닫기
+        cityModal.addEventListener('click', (e) => {
+            if (e.target === cityModal) {
+                cityModal.classList.remove('active');
+                citySearch.value = '';
+            }
+        });
+
+        // 도시 검색
+        citySearch.addEventListener('input', () => {
+            renderCityList();
+        });
+
+        // 도시 목록 렌더링
+        function renderCityList() {
+            const searchTerm = citySearch.value.toLowerCase();
+            const filteredCities = cities.filter(city => 
+                city.name.toLowerCase().includes(searchTerm)
+            );
+
+            cityList.innerHTML = '';
+
+            if (filteredCities.length === 0) {
+                cityList.innerHTML = '<div style="text-align: center; padding: 2rem; color: #95a5a6;">검색 결과가 없습니다.</div>';
+                return;
+            }
+
+            filteredCities.forEach(city => {
+                const isSelected = selectedCities.some(sc => sc.name === city.name);
+                const cityItem = document.createElement('div');
+                cityItem.className = `city-item ${isSelected ? 'disabled' : ''}`;
+                cityItem.innerHTML = `
+                    <div class="city-name">${city.name}</div>
+                    <div class="city-timezone">${city.timezone}</div>
+                `;
+                
+                if (!isSelected) {
+                    cityItem.addEventListener('click', () => {
+                        addCity(city);
+                        cityModal.classList.remove('active');
+                        citySearch.value = '';
+                    });
+                }
+                
+                cityList.appendChild(cityItem);
+            });
+        }
+
+        // 도시 추가
+        function addCity(city) {
+            if (selectedCities.length >= MAX_CITIES) {
+                alert(`최대 ${MAX_CITIES}개까지만 추가할 수 있습니다.`);
+                return;
+            }
+
+            selectedCities.push({ ...city });
+            saveData();
+            renderClocks();
+            addButton.disabled = selectedCities.length >= MAX_CITIES;
+        }
+
+        // 도시 제거
+        function removeCity(index) {
+            selectedCities.splice(index, 1);
+            saveData();
+            renderClocks();
+            addButton.disabled = selectedCities.length >= MAX_CITIES;
+        }
+
+        // 시계 렌더링
+        function renderClocks() {
+            clocksContainer.innerHTML = '';
+
+            if (selectedCities.length === 0) {
+                clocksContainer.appendChild(emptyState);
+                if (updateInterval) {
+                    clearInterval(updateInterval);
+                    updateInterval = null;
+                }
+                return;
+            }
+
+            selectedCities.forEach((city, index) => {
+                const clockCard = document.createElement('div');
+                clockCard.className = 'clock-card';
+                clockCard.innerHTML = `
+                    <div class="clock-header">
+                        <div>
+                            <div class="clock-city">${city.name}</div>
+                            <div class="clock-timezone">${city.timezone}</div>
+                        </div>
+                        <div style="position: relative;">
+                            <button class="menu-button" data-index="${index}" title="메뉴">⋯</button>
+                            <div class="dropdown-menu" id="menu-${index}">
+                                <div class="dropdown-item delete" data-action="delete">
+                                    <span>🗑️</span>
+                                    <span>삭제</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clock-time" id="time-${index}">--:--:--</div>
+                    <div class="clock-date" id="date-${index}">--</div>
+                    <div class="weather-section" id="weather-${index}">
+                        <div class="weather-loading">날씨 정보 로딩 중...</div>
+                    </div>
+                `;
+                const menuBtn = clockCard.querySelector('.menu-button');
+                const dropdownMenu = clockCard.querySelector('.dropdown-menu');
+                const deleteItem = clockCard.querySelector('.dropdown-item.delete');
+                
+                // 메뉴 버튼 클릭 시 드롭다운 토글
+                menuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // 다른 메뉴 닫기
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        if (menu !== dropdownMenu) {
+                            menu.classList.remove('active');
+                        }
+                    });
+                    dropdownMenu.classList.toggle('active');
+                });
+                
+                // 삭제 항목 클릭
+                deleteItem.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeCity(index);
+                    dropdownMenu.classList.remove('active');
+                });
+                
+                clocksContainer.appendChild(clockCard);
+            });
+            
+            // 외부 클릭 시 메뉴 닫기
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.menu-button') && !e.target.closest('.dropdown-menu')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.remove('active');
+                    });
+                }
+            });
+
+            updateAllClocks();
+            if (!updateInterval) {
+                updateInterval = setInterval(updateAllClocks, 1000);
+            }
+
+            // 날씨 정보 가져오기
+            selectedCities.forEach((city, index) => {
+                if (apiKeyInput.value) {
+                    fetchWeather(city, index);
+                } else {
+                    const weatherEl = document.getElementById(`weather-${index}`);
+                    weatherEl.innerHTML = '<div class="weather-error">날씨 API 키를 입력하세요</div>';
+                }
+            });
+        }
+
+        // 모든 시계 업데이트
+        function updateAllClocks() {
+            selectedCities.forEach((city, index) => {
+                updateClock(city, index);
+            });
+        }
+
+        // 개별 시계 업데이트
+        function updateClock(city, index) {
+            try {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ko-KR', {
+                    timeZone: city.timezone,
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                const dateString = now.toLocaleDateString('ko-KR', {
+                    timeZone: city.timezone,
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'long'
+                });
+
+                const timeEl = document.getElementById(`time-${index}`);
+                const dateEl = document.getElementById(`date-${index}`);
+                
+                if (timeEl) timeEl.textContent = timeString;
+                if (dateEl) dateEl.textContent = dateString;
+            } catch (error) {
+                console.error(`시계 업데이트 오류 (${city.name}):`, error);
+            }
+        }
+
+        // 날씨 정보 가져오기
+        async function fetchWeather(city, index) {
+            const apiKey = apiKeyInput.value;
+            if (!apiKey) return;
+
+            const weatherEl = document.getElementById(`weather-${index}`);
+            if (!weatherEl) return;
+
+            try {
+                weatherEl.innerHTML = '<div class="weather-loading">날씨 정보 로딩 중...</div>';
+                
+                const response = await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?lat=${city.lat}&lon=${city.lon}&appid=${apiKey}&units=metric&lang=kr`
+                );
+
+                if (!response.ok) {
+                    throw new Error('날씨 정보를 가져올 수 없습니다.');
+                }
+
+                const data = await response.json();
+                
+                const weatherIcon = getWeatherIcon(data.weather[0].main);
+                weatherEl.innerHTML = `
+                    <div class="weather-info">
+                        <div class="weather-icon">${weatherIcon}</div>
+                        <div class="weather-details">
+                            <div class="weather-temp">${Math.round(data.main.temp)}°C</div>
+                            <div class="weather-desc">${data.weather[0].description}</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('날씨 정보 오류:', error);
+                weatherEl.innerHTML = '<div class="weather-error">날씨 정보를 불러올 수 없습니다</div>';
+            }
+        }
+
+        // 날씨 아이콘 매핑
+        function getWeatherIcon(weatherMain) {
+            const iconMap = {
+                'Clear': '☀️',
+                'Clouds': '☁️',
+                'Rain': '🌧️',
+                'Drizzle': '🌦️',
+                'Thunderstorm': '⛈️',
+                'Snow': '❄️',
+                'Mist': '🌫️',
+                'Fog': '🌫️',
+                'Haze': '🌫️'
+            };
+            return iconMap[weatherMain] || '🌤️';
+        }
+
+        // 초기화
+        loadData();
+        addButton.disabled = selectedCities.length >= MAX_CITIES;
+    </script>
+</body>
+</html>
