@@ -811,10 +811,24 @@
         .align-center { align-items: center; }
         .gap-1 { gap: 0.5rem; }
         .gap-2 { gap: 1rem; }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #2980b9;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <a href="../index.html" class="back-link">← 프로젝트 목록으로 돌아가기</a>
         <!-- Header -->
         <div class="header">
             <h1><i class="fas fa-chart-line"></i> 주식 조건 검색 시스템</h1>

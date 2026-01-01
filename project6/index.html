@@ -467,10 +467,24 @@
                 background: rgba(231, 76, 60, 0.2);
             }
         }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #2980b9;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <a href="../index.html" class="back-link">← 프로젝트 목록으로 돌아가기</a>
         <header>
             <h1>전세계 시계</h1>
             <p class="description">원하는 도시를 추가하여 전세계 여러 지역의 현재 시간을 한 번에 확인하세요.</p>

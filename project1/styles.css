@@ -1172,4 +1172,17 @@ button:hover {
     color: white;
     padding: 10px 0;
     height: 150px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 2rem;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.back-link:hover {
+    color: #0056b3;
 } 
