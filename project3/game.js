@@ -15,6 +15,8 @@ class Game {
         this.gameStatusElement = document.getElementById('gameStatus');
         this.spikesEnabled = true; // 가시 활성화 상태
         this.coinsEnabled = true; // 동전 활성화 상태
+        this.mapSeed = null; // 맵 시드 저장
+        this.originalMapSeed = null; // 원본 시드 저장 (재생성용)
         
         // 플레이어
         this.player = {
@@ -30,69 +32,11 @@ class Game {
             color: '#ff6b6b'
         };
         
-        // 플랫폼들
-        this.platforms = [
-            { x: 0, y: 350, width: 200, height: 50, color: '#8B4513' },
-            { x: 250, y: 320, width: 150, height: 30, color: '#8B4513' },
-            { x: 450, y: 280, width: 120, height: 30, color: '#8B4513' },
-            { x: 620, y: 250, width: 100, height: 30, color: '#8B4513' },
-            { x: 800, y: 300, width: 150, height: 30, color: '#8B4513' },
-            { x: 1000, y: 200, width: 120, height: 30, color: '#8B4513' },
-            { x: 1200, y: 320, width: 200, height: 30, color: '#8B4513' },
-            { x: 1500, y: 250, width: 100, height: 30, color: '#8B4513' },
-            { x: 1700, y: 180, width: 150, height: 30, color: '#8B4513' },
-            { x: 2000, y: 300, width: 200, height: 50, color: '#8B4513' }
-        ];
-        
-        // 가시 함정들 (물리 시스템 적용)
-        this.spikes = [
-            // 첫 번째 플랫폼 위의 가시
-            { x: 300, y: 290, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 250, platformY: 320 },
-            
-            // 두 번째 플랫폼 위의 가시
-            { x: 500, y: 250, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 450, platformY: 280 },
-            
-            // 세 번째 플랫폼 위의 가시
-            { x: 670, y: 220, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 620, platformY: 250 },
-            
-            // 네 번째 플랫폼 위의 가시
-            { x: 850, y: 270, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 800, platformY: 300 },
-            
-            // 다섯 번째 플랫폼 위의 가시
-            { x: 1050, y: 170, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 1000, platformY: 200 },
-            
-            // 여섯 번째 플랫폼 위의 가시
-            { x: 1250, y: 290, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 1200, platformY: 320 },
-            
-            // 일곱 번째 플랫폼 위의 가시
-            { x: 1550, y: 220, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 1500, platformY: 250 },
-            
-            // 여덟 번째 플랫폼 위의 가시
-            { x: 1750, y: 150, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 1700, platformY: 180 }
-        ];
-        
-        // 동전들
-        this.coins = [
-            { x: 300, y: 280, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 500, y: 240, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 670, y: 210, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 850, y: 260, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 1050, y: 160, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 1250, y: 280, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 1550, y: 210, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 1750, y: 140, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 1900, y: 250, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 2100, y: 270, width: 15, height: 15, collected: false, animation: 0 }
-        ];
-        
-        // 깃발 (승리 목표)
-        this.flag = {
-            x: 2200,
-            y: 250,
-            width: 30,
-            height: 100,
-            poleHeight: 80
-        };
+        // 플랫폼들, 가시, 동전, 깃발은 랜덤 생성으로 초기화
+        this.platforms = [];
+        this.spikes = [];
+        this.coins = [];
+        this.flag = { x: 0, y: 0, width: 30, height: 100, poleHeight: 80 };
         
         // 키 입력 상태
         this.keys = {};
@@ -108,12 +52,21 @@ class Game {
         this.gravity = 0.8;
         this.friction = 0.8;
         
+        // 가시와 동전의 초기 위치 저장 (리셋용)
+        this.initialSpikes = [];
+        this.initialCoins = [];
+        
+        // 초기 맵 생성 (init 전에 호출하여 플랫폼이 제대로 생성되도록)
+        this.generateRandomMap();
+        
         this.init();
     }
     
     init() {
         this.setupEventListeners();
         this.setupTouchControls();
+        // 초기 렌더링 실행 (플랫폼이 보이도록)
+        this.render();
         this.gameLoop();
     }
     
@@ -130,6 +83,15 @@ class Game {
         // 버튼 이벤트
         document.getElementById('resetBtn').addEventListener('click', () => {
             this.resetGame();
+        });
+        
+        // 맵 메뉴 버튼 이벤트
+        document.getElementById('regenerateMapBtn').addEventListener('click', () => {
+            this.regenerateCurrentMap();
+        });
+        
+        document.getElementById('newMapBtn').addEventListener('click', () => {
+            this.generateNewMap();
         });
         
         // 가시 토글 이벤트
@@ -305,31 +267,13 @@ class Game {
         this.camera.x = 0;
         this.camera.y = 0;
         
-        // 가시들 초기 위치로 리셋
-        this.spikes = [
-            { x: 300, y: 290, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 250, platformY: 320 },
-            { x: 500, y: 250, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 450, platformY: 280 },
-            { x: 670, y: 220, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 620, platformY: 250 },
-            { x: 850, y: 270, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 800, platformY: 300 },
-            { x: 1050, y: 170, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 1000, platformY: 200 },
-            { x: 1250, y: 290, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 1200, platformY: 320 },
-            { x: 1550, y: 220, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 1500, platformY: 250 },
-            { x: 1750, y: 150, width: 20, height: 20, velocityY: 0, onGround: false, platformX: 1700, platformY: 180 }
-        ];
-        
-        // 동전들 초기 상태로 리셋
-        this.coins = [
-            { x: 300, y: 280, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 500, y: 240, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 670, y: 210, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 850, y: 260, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 1050, y: 160, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 1250, y: 280, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 1550, y: 210, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 1750, y: 140, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 1900, y: 250, width: 15, height: 15, collected: false, animation: 0 },
-            { x: 2100, y: 270, width: 15, height: 15, collected: false, animation: 0 }
-        ];
+        // 가시와 동전을 초기 위치로 복원 (맵은 유지)
+        if (this.initialSpikes.length > 0) {
+            this.spikes = JSON.parse(JSON.stringify(this.initialSpikes));
+        }
+        if (this.initialCoins.length > 0) {
+            this.coins = JSON.parse(JSON.stringify(this.initialCoins));
+        }
         
         this.updateGameStatus();
         document.getElementById('score').textContent = this.score;
@@ -346,6 +290,256 @@ class Game {
         this.isVictory = true;
         this.isRunning = false;
         this.updateGameStatus();
+    }
+    
+    // 시드 기반 랜덤 생성기
+    seededRandom(seed) {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+    }
+    
+    // 랜덤 맵 생성
+    generateRandomMap(seed = null) {
+        // 시드 설정
+        if (seed === null) {
+            this.originalMapSeed = Math.random() * 1000000;
+        } else {
+            this.originalMapSeed = seed;
+        }
+        
+        // 현재 시드를 원본 시드로 초기화
+        this.mapSeed = this.originalMapSeed;
+        
+        let rng = (max = 1, min = 0) => {
+            this.mapSeed = (this.mapSeed * 9301 + 49297) % 233280;
+            return min + (this.mapSeed / 233280) * (max - min);
+        };
+        
+        // 플랫폼 초기화
+        this.platforms = [];
+        this.spikes = [];
+        this.coins = [];
+        
+        // 시작 플랫폼 (항상 고정)
+        this.platforms.push({ x: 0, y: 350, width: 200, height: 50, color: '#8B4513' });
+        
+        // 플레이어 점프 능력 계산
+        // 최대 점프 높이 = (jumpPower^2) / (2 * gravity) = (15^2) / (2 * 0.8) ≈ 140픽셀
+        // 최대 점프 거리 = speed * (jumpPower * 2 / gravity) = 5 * (30 / 0.8) ≈ 187픽셀
+        const maxJumpHeight = (this.player.jumpPower * this.player.jumpPower) / (2 * this.gravity);
+        const maxJumpDistance = this.player.speed * (this.player.jumpPower * 2 / this.gravity);
+        
+        // 안전 마진을 고려한 최대 거리와 높이 차이
+        const maxHorizontalGap = maxJumpDistance * 0.9; // 90%로 제한 (약 168픽셀)
+        const maxVerticalUp = maxJumpHeight * 0.8; // 위로 점프 시 80%로 제한 (약 112픽셀)
+        const maxVerticalDown = 200; // 아래로 점프는 더 여유롭게 (200픽셀)
+        
+        // 랜덤 플랫폼 생성
+        const numPlatforms = 8 + Math.floor(rng(5, 0)); // 8-12개
+        let lastX = 200; // 시작 플랫폼의 끝
+        let lastY = 350; // 시작 플랫폼의 Y 위치
+        const minGap = 80;
+        const maxGap = maxHorizontalGap; // 점프 가능한 최대 거리로 제한
+        const minWidth = 100;
+        const maxWidth = 200;
+        const minHeight = 30;
+        const maxHeight = 50;
+        const minY = 150;
+        const maxY = 320;
+        
+        for (let i = 0; i < numPlatforms; i++) {
+            const width = rng(maxWidth, minWidth);
+            const height = rng(maxHeight, minHeight);
+            
+            // 이전 플랫폼 끝에서 다음 플랫폼 시작까지의 거리
+            let gap = rng(maxGap, minGap);
+            let x = lastX + gap;
+            
+            // Y 위치 결정 (점프 가능한 범위 내)
+            let y;
+            if (i === 0) {
+                y = rng(320, 280);
+            } else {
+                // 수평 거리에 따른 최대 높이 차이 계산
+                // 거리가 멀수록 높이 차이는 작아야 함
+                const horizontalDistance = gap;
+                const distanceRatio = horizontalDistance / maxHorizontalGap;
+                
+                // 거리에 따른 최대 높이 차이 계산
+                let maxAllowedHeightDiff;
+                if (distanceRatio < 0.5) {
+                    // 가까운 거리: 높이 차이를 더 크게 가능
+                    maxAllowedHeightDiff = maxVerticalUp;
+                } else if (distanceRatio < 0.8) {
+                    // 중간 거리: 높이 차이를 중간 정도로
+                    maxAllowedHeightDiff = maxVerticalUp * (1 - (distanceRatio - 0.5) * 0.67);
+                } else {
+                    // 먼 거리: 높이 차이를 작게 제한
+                    maxAllowedHeightDiff = maxVerticalUp * 0.3;
+                }
+                
+                // 아래로 점프는 더 여유롭게
+                const maxDownDiff = Math.min(maxVerticalDown, maxAllowedHeightDiff * 1.5);
+                
+                // 높이 차이 결정 (위로 또는 아래로)
+                let yVariation;
+                if (rng(1) < 0.5) {
+                    // 위로 점프
+                    yVariation = -rng(maxAllowedHeightDiff, 0);
+                } else {
+                    // 아래로 점프
+                    yVariation = rng(maxDownDiff, 0);
+                }
+                
+                y = lastY + yVariation;
+                y = Math.max(minY, Math.min(maxY, y));
+                
+                // 최종 점프 가능 여부 재검증
+                const finalHorizontalDist = x - lastX;
+                const finalVerticalDist = Math.abs(y - lastY);
+                
+                // 수평 거리가 최대치에 가까우면 높이 차이를 더 제한
+                if (finalHorizontalDist > maxHorizontalGap * 0.85) {
+                    const strictMaxHeight = maxVerticalUp * 0.5;
+                    if (finalVerticalDist > strictMaxHeight) {
+                        // 높이 차이를 줄여서 재조정
+                        if (y > lastY) {
+                            y = lastY + strictMaxHeight;
+                        } else {
+                            y = lastY - strictMaxHeight;
+                        }
+                        y = Math.max(minY, Math.min(maxY, y));
+                    }
+                }
+            }
+            
+            this.platforms.push({ x, y, width, height, color: '#8B4513' });
+            lastX = x + width;
+            lastY = y;
+        }
+        
+        // 마지막 플랫폼 (깃발용, 항상 추가) - 점프 가능한 거리 내에 배치
+        let finalGap = rng(maxHorizontalGap * 0.7, minGap);
+        const finalPlatformX = lastX + finalGap;
+        
+        // 마지막 플랫폼의 Y 위치도 점프 가능한 범위 내에
+        let finalPlatformY;
+        const finalHeightDiff = rng(Math.min(50, maxVerticalDown), -Math.min(60, maxVerticalUp));
+        finalPlatformY = Math.max(minY, Math.min(maxY, lastY + finalHeightDiff));
+        
+        this.platforms.push({ 
+            x: finalPlatformX, 
+            y: finalPlatformY, 
+            width: 200, 
+            height: 50, 
+            color: '#8B4513' 
+        });
+        
+        // 가시 생성 (일부 플랫폼에만)
+        for (let i = 1; i < this.platforms.length - 1; i++) {
+            const platform = this.platforms[i];
+            // 60% 확률로 가시 생성
+            if (rng(1) < 0.6) {
+                const spikeX = platform.x + rng(platform.width - 40, 20);
+                const spikeY = platform.y - 20;
+                this.spikes.push({
+                    x: spikeX,
+                    y: spikeY,
+                    width: 20,
+                    height: 20,
+                    velocityY: 0,
+                    onGround: false,
+                    platformX: platform.x,
+                    platformY: platform.y
+                });
+            }
+        }
+        
+        // 동전 생성 (가시와 겹치지 않도록)
+        for (let i = 1; i < this.platforms.length; i++) {
+            const platform = this.platforms[i];
+            const spikeOnPlatform = this.spikes.find(s => 
+                s.platformX === platform.x && s.platformY === platform.y
+            );
+            
+            // 플랫폼당 1-2개의 동전
+            const numCoins = rng(2.5, 0.5) < 1.5 ? 1 : 2;
+            
+            for (let j = 0; j < numCoins; j++) {
+                let coinX, coinY;
+                let attempts = 0;
+                let validPosition = false;
+                
+                // 가시와 겹치지 않는 위치 찾기
+                while (!validPosition && attempts < 20) {
+                    coinX = platform.x + rng(platform.width - 30, 15);
+                    coinY = platform.y - 15;
+                    
+                    // 가시와의 거리 확인
+                    if (spikeOnPlatform) {
+                        const distance = Math.abs(coinX - spikeOnPlatform.x);
+                        if (distance > 40) {
+                            validPosition = true;
+                        }
+                    } else {
+                        validPosition = true;
+                    }
+                    
+                    // 다른 동전과의 거리 확인
+                    if (validPosition) {
+                        for (let coin of this.coins) {
+                            if (Math.abs(coin.x - coinX) < 30) {
+                                validPosition = false;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    attempts++;
+                }
+                
+                if (validPosition) {
+                    this.coins.push({
+                        x: coinX,
+                        y: coinY,
+                        width: 15,
+                        height: 15,
+                        collected: false,
+                        animation: rng(Math.PI * 2, 0)
+                    });
+                }
+            }
+        }
+        
+        // 깃발 위치 설정 (마지막 플랫폼 위)
+        const finalPlatform = this.platforms[this.platforms.length - 1];
+        this.flag = {
+            x: finalPlatform.x + finalPlatform.width / 2 - 15,
+            y: finalPlatform.y - 100,
+            width: 30,
+            height: 100,
+            poleHeight: 80
+        };
+        
+        // 초기 위치 저장 (리셋용)
+        this.initialSpikes = JSON.parse(JSON.stringify(this.spikes));
+        this.initialCoins = JSON.parse(JSON.stringify(this.coins));
+    }
+    
+    // 같은 맵 다시 생성
+    regenerateCurrentMap() {
+        if (this.originalMapSeed !== null) {
+            this.generateRandomMap(this.originalMapSeed);
+        } else {
+            this.generateRandomMap();
+        }
+        this.resetGame();
+    }
+    
+    // 새 맵 생성
+    generateNewMap() {
+        this.generateRandomMap();
+        this.resetGame();
     }
     
     handleInput() {
