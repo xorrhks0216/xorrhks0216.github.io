@@ -1052,11 +1052,20 @@ class MazeGame {
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         this.scene.add(ambientLight);
 
+        // 남쪽에서 오는 햇빛 (해 높이를 높게 설정하여 그림자가 짧게)
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(50, 50, 50);
+        // 남쪽은 Z축 양의 방향, 해를 높게 설정 (y값을 크게)
+        directionalLight.position.set(0, 30, 20); // 남쪽에서 높은 위치
         directionalLight.castShadow = true;
         directionalLight.shadow.mapSize.width = 2048;
         directionalLight.shadow.mapSize.height = 2048;
+        // 그림자 범위 설정 (짧은 그림자를 위해 범위 조정)
+        directionalLight.shadow.camera.left = -50;
+        directionalLight.shadow.camera.right = 50;
+        directionalLight.shadow.camera.top = 50;
+        directionalLight.shadow.camera.bottom = -50;
+        directionalLight.shadow.camera.near = 0.1;
+        directionalLight.shadow.camera.far = 100;
         this.scene.add(directionalLight);
 
         // 3D 컨트롤 이벤트
@@ -1320,13 +1329,8 @@ class MazeGame {
         this.floor.receiveShadow = true;
         this.scene.add(this.floor);
 
-        // 천장 생성
-        const ceilingGeometry = new THREE.PlaneGeometry(this.cols * cellSize, this.rows * cellSize);
-        const ceilingMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
-        this.ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
-        this.ceiling.rotation.x = Math.PI / 2;
-        this.ceiling.position.set(0, wallHeight, 0);
-        this.scene.add(this.ceiling);
+        // 천장 제거 (사용자 요청)
+        this.ceiling = null;
 
         // 벽 생성 - 텍스처 적용
         const wallMaterial = this.getWallTextureMaterial3D();
