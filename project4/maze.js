@@ -8,10 +8,14 @@ class MazeGame {
         this.maze = [];
         this.visited = [];
         this.path = [];
-        this.playerPos = { row: 0, col: 0 };
+        this.playerPos = { row: 0, col: 0, direction: 0 }; // 0: 위, 1: 오른쪽, 2: 아래, 3: 왼쪽
         this.startPos = { row: 0, col: 0 };
         this.endPos = { row: 0, col: 0 };
         this.moveCount = 0;
+        this.hasShovel = false; // 삽 보유 여부
+        this.hasSword = false; // 칼 보유 여부
+        this.items = []; // 아이템 위치 배열 [{row, col, type: 'shovel'|'sword'}]
+        this.itemImages = {}; // 아이템 이미지 캐시
         this.showPath = false;
         this.gameWon = false;
         this.gameOver = false;
@@ -27,7 +31,7 @@ class MazeGame {
         this.monster = {
             row: 0,
             col: 0,
-            direction: null, // 이동 방향
+            direction: 0, // 이동 방향 (0: 위, 1: 오른쪽, 2: 아래, 3: 왼쪽)
             moveTimer: null,
             moveInterval: 800, // 괴물 이동 간격 (ms)
             speed: 1, // 이동 속도 (칸 단위)
@@ -102,6 +106,31 @@ class MazeGame {
             };
             // src 설정은 onload/onerror 등록 후에 해야 함
             img.src = textureFiles[textureName];
+        });
+        
+        // 아이템 이미지 로드
+        this.preloadItemImages();
+    }
+    
+    // 아이템 이미지 미리 로드
+    preloadItemImages() {
+        const itemFiles = {
+            'shovel': 'textures/shovel.png',
+            'sword': 'textures/sword.png',
+        };
+        
+        Object.keys(itemFiles).forEach(itemType => {
+            const img = new Image();
+            img.onload = () => {
+                this.itemImages[itemType] = img;
+                if (this.viewMode === '2D') {
+                    this.draw();
+                }
+            };
+            img.onerror = () => {
+                // 이미지 로드 실패 시 기본 텍스트 사용
+            };
+            img.src = itemFiles[itemType];
         });
     }
 
@@ -428,12 +457,130 @@ class MazeGame {
         }
     }
 
+    // 골목 끝 찾기 (끝점에서 가장 먼 막다른 길 찾기)
+    findDeadEnds() {
+        const deadEnds = [];
+        const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+        
+        for (let i = 1; i < this.rows - 1; i++) {
+            for (let j = 1; j < this.cols - 1; j++) {
+                if (this.maze[i][j] === 0) {
+                    // 막다른 길인지 확인 (3면이 벽)
+                    let wallCount = 0;
+                    for (const [dr, dc] of directions) {
+                        if (this.maze[i + dr][j + dc] === 1) {
+                            wallCount++;
+                        }
+                    }
+                    
+                    if (wallCount === 3) {
+                        // 끝점에서의 거리 계산
+                        const distance = Math.abs(i - this.endPos.row) + Math.abs(j - this.endPos.col);
+                        deadEnds.push({ row: i, col: j, distance });
+                    }
+                }
+            }
+        }
+        
+        // 거리순으로 정렬 (가장 먼 것부터)
+        deadEnds.sort((a, b) => b.distance - a.distance);
+        return deadEnds;
+    }
+
+    // 위치가 겹치는지 확인
+    isPositionOccupied(row, col, excludeItems = []) {
+        // 시작점, 끝점 확인
+        if ((row === this.startPos.row && col === this.startPos.col) ||
+            (row === this.endPos.row && col === this.endPos.col)) {
+            return true;
+        }
+        
+        // 기존 아이템 확인
+        for (const item of this.items) {
+            if (excludeItems.includes(item)) continue;
+            if (item.row === row && item.col === col) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    // 아이템 배치
+    placeItems() {
+        this.items = [];
+        this.hasShovel = false;
+        this.hasSword = false;
+        
+        const deadEnds = this.findDeadEnds();
+        const availablePositions = [];
+        
+        // 사용 가능한 위치 수집 (시작점, 끝점 제외)
+        for (let i = 1; i < this.rows - 1; i++) {
+            for (let j = 1; j < this.cols - 1; j++) {
+                if (this.maze[i][j] === 0 && !this.isPositionOccupied(i, j)) {
+                    const distance = Math.abs(i - this.endPos.row) + Math.abs(j - this.endPos.col);
+                    availablePositions.push({ row: i, col: j, distance });
+                }
+            }
+        }
+        
+        // 거리순으로 정렬 (먼 곳부터)
+        availablePositions.sort((a, b) => b.distance - a.distance);
+        
+        // 삽 배치
+        let shovelPlaced = false;
+        for (const pos of availablePositions) {
+            if (!this.isPositionOccupied(pos.row, pos.col)) {
+                this.items.push({ row: pos.row, col: pos.col, type: 'shovel' });
+                shovelPlaced = true;
+                break;
+            }
+        }
+        
+        // 칼 배치
+        let swordPlaced = false;
+        for (const pos of availablePositions) {
+            if (!this.isPositionOccupied(pos.row, pos.col)) {
+                this.items.push({ row: pos.row, col: pos.col, type: 'sword' });
+                swordPlaced = true;
+                break;
+            }
+        }
+        
+        // 막다른 길이 우선이지만, 없으면 일반 위치 사용
+        if (!shovelPlaced || !swordPlaced) {
+            // 막다른 길 우선 사용
+            const deadEndPositions = deadEnds.filter(de => 
+                !this.isPositionOccupied(de.row, de.col)
+            );
+            
+            if (deadEndPositions.length > 0 && !shovelPlaced) {
+                this.items.push({ 
+                    row: deadEndPositions[0].row, 
+                    col: deadEndPositions[0].col, 
+                    type: 'shovel' 
+                });
+                shovelPlaced = true;
+            }
+            
+            if (deadEndPositions.length > 1 && !swordPlaced) {
+                this.items.push({ 
+                    row: deadEndPositions[1].row, 
+                    col: deadEndPositions[1].col, 
+                    type: 'sword' 
+                });
+                swordPlaced = true;
+            }
+        }
+    }
+
     // 미로 생성 후 공통 후처리
     finalizeMaze() {
         // 시작점과 끝점 설정
         this.startPos = { row: 1, col: 1 };
         this.endPos = { row: this.rows - 2, col: this.cols - 2 };
-        this.playerPos = { ...this.startPos };
+        this.playerPos = { row: this.startPos.row, col: this.startPos.col, direction: 0 }; // 초기 방향: 위
         
         // 시작점과 끝점이 길인지 확인하고, 아니면 길로 만들기
         this.maze[this.startPos.row][this.startPos.col] = 0;
@@ -444,6 +591,9 @@ class MazeGame {
             // 경로가 없으면 강제로 경로 생성
             this.createPath(this.startPos.row, this.startPos.col, this.endPos.row, this.endPos.col);
         }
+        
+        // 아이템 배치 (시작점, 끝점과 겹치지 않도록)
+        this.placeItems();
         
         // 방문 기록 초기화
         this.visited = [];
@@ -458,9 +608,15 @@ class MazeGame {
         this.moveCount = 0;
         this.gameWon = false;
         this.gameOver = false;
+        this.hasShovel = false;
+        this.hasSword = false;
         document.getElementById('moveCount').textContent = '0';
         document.getElementById('winMessage').classList.add('hidden');
         document.getElementById('gameOverMessage').classList.add('hidden');
+        document.getElementById('shovelBtn').disabled = true;
+        document.getElementById('shovelBtn').classList.add('disabled');
+        document.getElementById('swordBtn').disabled = true;
+        document.getElementById('swordBtn').classList.add('disabled');
         
         // 공포 모드가 활성화되어 있으면 괴물 초기화
         if (this.horrorMode && this.monster) {
@@ -933,6 +1089,20 @@ class MazeGame {
                 }
             }
         });
+
+        // 삽 버튼
+        document.getElementById('shovelBtn').addEventListener('click', () => {
+            if (this.hasShovel) {
+                this.useShovel();
+            }
+        });
+
+        // 칼 버튼
+        document.getElementById('swordBtn').addEventListener('click', () => {
+            if (this.hasSword) {
+                this.useSword();
+            }
+        });
     }
 
     updateCurrentDirection() {
@@ -992,7 +1162,26 @@ class MazeGame {
         }
     }
 
+    // 방향을 숫자로 변환
+    getDirectionFromMove(dr, dc) {
+        if (dr === -1 && dc === 0) return 0; // 위
+        else if (dr === 0 && dc === 1) return 1; // 오른쪽
+        else if (dr === 1 && dc === 0) return 2; // 아래
+        else if (dr === 0 && dc === -1) return 3; // 왼쪽
+        return null;
+    }
+
     movePlayer(dr, dc) {
+        const newDirection = this.getDirectionFromMove(dr, dc);
+        if (newDirection === null) return;
+        
+        // 현재 방향과 이동하려는 방향이 다르면 방향만 전환
+        if (this.playerPos.direction !== newDirection) {
+            this.playerPos.direction = newDirection;
+            this.draw();
+            return;
+        }
+        
         const newRow = this.playerPos.row + dr;
         const newCol = this.playerPos.col + dc;
 
@@ -1016,6 +1205,9 @@ class MazeGame {
         this.visited[newRow][newCol] = true;
         this.path.push({ row: newRow, col: newCol });
 
+        // 아이템 획득 체크
+        this.checkItemCollection();
+
         // 승리 체크
         if (newRow === this.endPos.row && newCol === this.endPos.col) {
             this.gameWon = true;
@@ -1032,6 +1224,25 @@ class MazeGame {
         }
 
         this.draw();
+    }
+
+    // 아이템 획득 체크
+    checkItemCollection() {
+        for (let i = this.items.length - 1; i >= 0; i--) {
+            const item = this.items[i];
+            if (item.row === this.playerPos.row && item.col === this.playerPos.col) {
+                if (item.type === 'shovel') {
+                    this.hasShovel = true;
+                    document.getElementById('shovelBtn').disabled = false;
+                    document.getElementById('shovelBtn').classList.remove('disabled');
+                } else if (item.type === 'sword') {
+                    this.hasSword = true;
+                    document.getElementById('swordBtn').disabled = false;
+                    document.getElementById('swordBtn').classList.remove('disabled');
+                }
+                this.items.splice(i, 1);
+            }
+        }
     }
 
     draw() {
@@ -1082,6 +1293,60 @@ class MazeGame {
         this.ctx.fillStyle = 'white';
         this.ctx.fillText('E', endX + this.cellSize / 2, endY + this.cellSize / 2);
 
+        // 아이템 표시
+        for (const item of this.items) {
+            const itemX = item.col * this.cellSize;
+            const itemY = item.row * this.cellSize;
+            const centerX = itemX + this.cellSize / 2;
+            const centerY = itemY + this.cellSize / 2;
+            
+            // 이미지가 있으면 이미지 사용, 없으면 아이콘 그리기
+            if (this.itemImages[item.type]) {
+                const img = this.itemImages[item.type];
+                const imgSize = this.cellSize * 0.8;
+                this.ctx.drawImage(img, 
+                    itemX + (this.cellSize - imgSize) / 2, 
+                    itemY + (this.cellSize - imgSize) / 2, 
+                    imgSize, imgSize);
+            } else {
+                // 이미지가 없으면 간단한 아이콘 그리기
+                this.ctx.save();
+                if (item.type === 'shovel') {
+                    // 삽 아이콘 그리기
+                    this.ctx.fillStyle = '#8B4513';
+                    this.ctx.strokeStyle = '#654321';
+                    this.ctx.lineWidth = 2;
+                    // 손잡이
+                    this.ctx.fillRect(centerX - 2, centerY - this.cellSize * 0.3, 4, this.cellSize * 0.4);
+                    // 삽날
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(centerX - this.cellSize * 0.2, centerY + this.cellSize * 0.1);
+                    this.ctx.lineTo(centerX, centerY + this.cellSize * 0.3);
+                    this.ctx.lineTo(centerX + this.cellSize * 0.2, centerY + this.cellSize * 0.1);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    this.ctx.stroke();
+                } else {
+                    // 칼 아이콘 그리기
+                    this.ctx.fillStyle = '#C0C0C0';
+                    this.ctx.strokeStyle = '#808080';
+                    this.ctx.lineWidth = 2;
+                    // 칼날
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(centerX - this.cellSize * 0.15, centerY - this.cellSize * 0.3);
+                    this.ctx.lineTo(centerX, centerY + this.cellSize * 0.25);
+                    this.ctx.lineTo(centerX + this.cellSize * 0.15, centerY - this.cellSize * 0.3);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    this.ctx.stroke();
+                    // 손잡이
+                    this.ctx.fillStyle = '#8B4513';
+                    this.ctx.fillRect(centerX - 3, centerY - this.cellSize * 0.35, 6, this.cellSize * 0.15);
+                }
+                this.ctx.restore();
+            }
+        }
+
         // 플레이어
         const playerX = this.playerPos.col * this.cellSize;
         const playerY = this.playerPos.row * this.cellSize;
@@ -1095,6 +1360,38 @@ class MazeGame {
             Math.PI * 2
         );
         this.ctx.fill();
+        
+        // 플레이어 방향 화살표
+        this.ctx.strokeStyle = '#ffffff';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        const centerX = playerX + this.cellSize / 2;
+        const centerY = playerY + this.cellSize / 2;
+        const arrowSize = this.cellSize * 0.2;
+        
+        // 방향에 따라 화살표 그리기
+        if (this.playerPos.direction === 0) { // 위
+            this.ctx.moveTo(centerX, centerY - arrowSize);
+            this.ctx.lineTo(centerX - arrowSize * 0.5, centerY);
+            this.ctx.moveTo(centerX, centerY - arrowSize);
+            this.ctx.lineTo(centerX + arrowSize * 0.5, centerY);
+        } else if (this.playerPos.direction === 1) { // 오른쪽
+            this.ctx.moveTo(centerX + arrowSize, centerY);
+            this.ctx.lineTo(centerX, centerY - arrowSize * 0.5);
+            this.ctx.moveTo(centerX + arrowSize, centerY);
+            this.ctx.lineTo(centerX, centerY + arrowSize * 0.5);
+        } else if (this.playerPos.direction === 2) { // 아래
+            this.ctx.moveTo(centerX, centerY + arrowSize);
+            this.ctx.lineTo(centerX - arrowSize * 0.5, centerY);
+            this.ctx.moveTo(centerX, centerY + arrowSize);
+            this.ctx.lineTo(centerX + arrowSize * 0.5, centerY);
+        } else if (this.playerPos.direction === 3) { // 왼쪽
+            this.ctx.moveTo(centerX - arrowSize, centerY);
+            this.ctx.lineTo(centerX, centerY - arrowSize * 0.5);
+            this.ctx.moveTo(centerX - arrowSize, centerY);
+            this.ctx.lineTo(centerX, centerY + arrowSize * 0.5);
+        }
+        this.ctx.stroke();
 
         // 괴물 (공포 모드일 때만)
         if (this.horrorMode && this.monster) {
@@ -1130,6 +1427,37 @@ class MazeGame {
                 Math.PI * 2
             );
             this.ctx.fill();
+            
+            // 괴물 방향 화살표
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+            const monsterCenterX = monsterX + this.cellSize / 2;
+            const monsterCenterY = monsterY + this.cellSize / 2;
+            const monsterArrowSize = this.cellSize * 0.25;
+            
+            if (this.monster.direction === 0) { // 위
+                this.ctx.moveTo(monsterCenterX, monsterCenterY - monsterArrowSize);
+                this.ctx.lineTo(monsterCenterX - monsterArrowSize * 0.5, monsterCenterY);
+                this.ctx.moveTo(monsterCenterX, monsterCenterY - monsterArrowSize);
+                this.ctx.lineTo(monsterCenterX + monsterArrowSize * 0.5, monsterCenterY);
+            } else if (this.monster.direction === 1) { // 오른쪽
+                this.ctx.moveTo(monsterCenterX + monsterArrowSize, monsterCenterY);
+                this.ctx.lineTo(monsterCenterX, monsterCenterY - monsterArrowSize * 0.5);
+                this.ctx.moveTo(monsterCenterX + monsterArrowSize, monsterCenterY);
+                this.ctx.lineTo(monsterCenterX, monsterCenterY + monsterArrowSize * 0.5);
+            } else if (this.monster.direction === 2) { // 아래
+                this.ctx.moveTo(monsterCenterX, monsterCenterY + monsterArrowSize);
+                this.ctx.lineTo(monsterCenterX - monsterArrowSize * 0.5, monsterCenterY);
+                this.ctx.moveTo(monsterCenterX, monsterCenterY + monsterArrowSize);
+                this.ctx.lineTo(monsterCenterX + monsterArrowSize * 0.5, monsterCenterY);
+            } else if (this.monster.direction === 3) { // 왼쪽
+                this.ctx.moveTo(monsterCenterX - monsterArrowSize, monsterCenterY);
+                this.ctx.lineTo(monsterCenterX, monsterCenterY - monsterArrowSize * 0.5);
+                this.ctx.moveTo(monsterCenterX - monsterArrowSize, monsterCenterY);
+                this.ctx.lineTo(monsterCenterX, monsterCenterY + monsterArrowSize * 0.5);
+            }
+            this.ctx.stroke();
         }
     }
 
@@ -2013,7 +2341,7 @@ class MazeGame {
         // 괴물을 끝점 근처에 배치
         this.monster.row = this.endPos.row;
         this.monster.col = this.endPos.col;
-        this.monster.direction = null;
+        this.monster.direction = 0; // 초기 방향: 위
         this.monster.lastSeenPlayerPos = null;
         this.monster.pathToTarget = [];
         
@@ -2021,6 +2349,93 @@ class MazeGame {
         if (this.viewMode === '3D' && this.scene) {
             this.createMonster3D();
         }
+    }
+    
+    // 플레이어 방향 1칸 앞 위치 계산
+    getFrontPosition() {
+        const directions = [
+            [-1, 0], // 위
+            [0, 1],  // 오른쪽
+            [1, 0],  // 아래
+            [0, -1]  // 왼쪽
+        ];
+        
+        const [dr, dc] = directions[this.playerPos.direction];
+        return {
+            row: this.playerPos.row + dr,
+            col: this.playerPos.col + dc
+        };
+    }
+    
+    // 플레이어 방향 3칸 앞 위치 계산
+    getFront3Position() {
+        const directions = [
+            [-1, 0], // 위
+            [0, 1],  // 오른쪽
+            [1, 0],  // 아래
+            [0, -1]  // 왼쪽
+        ];
+        
+        const [dr, dc] = directions[this.playerPos.direction];
+        return {
+            row: this.playerPos.row + dr * 3,
+            col: this.playerPos.col + dc * 3
+        };
+    }
+    
+    // 삽 사용 (앞 벽 제거)
+    useShovel() {
+        if (!this.hasShovel) return false;
+        
+        const front = this.getFrontPosition();
+        
+        // 경계 체크
+        if (front.row < 0 || front.row >= this.rows || 
+            front.col < 0 || front.col >= this.cols) {
+            return false;
+        }
+        
+        // 벽이면 제거
+        if (this.maze[front.row][front.col] === 1) {
+            this.maze[front.row][front.col] = 0;
+            
+            // 3D 미로 업데이트
+            if (this.viewMode === '3D' && this.scene) {
+                this.create3DMaze(false); // 현재 위치 유지
+            }
+            
+            this.draw();
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // 칼 사용 (앞 괴물 제거)
+    useSword() {
+        if (!this.hasSword || !this.horrorMode || !this.monster) return false;
+        
+        const front3 = this.getFront3Position();
+        
+        // 괴물이 3칸 앞에 있는지 확인
+        if (this.monster.row === front3.row && 
+            this.monster.col === front3.col) {
+            // 괴물 제거
+            this.stopMonsterMovement();
+            this.removeMonster();
+            
+            // 괴물 객체 초기화 (null로 설정하지 않고 빈 객체로 유지)
+            this.monster.row = -1;
+            this.monster.col = -1;
+            this.monster.direction = 0;
+            this.monster.lastSeenPlayerPos = null;
+            this.monster.pathToTarget = [];
+            
+            this.draw();
+            return true;
+        }
+        
+        return false;
     }
 
     // 괴물 이동 시작
@@ -2189,6 +2604,17 @@ class MazeGame {
         if (this.monster.pathToTarget.length > 0) {
             // 경로의 다음 위치로 이동
             const [nextRow, nextCol] = this.monster.pathToTarget[0];
+            const oldRow = this.monster.row;
+            const oldCol = this.monster.col;
+            
+            // 방향 업데이트
+            const dr = nextRow - oldRow;
+            const dc = nextCol - oldCol;
+            if (dr === -1 && dc === 0) this.monster.direction = 0; // 위
+            else if (dr === 0 && dc === 1) this.monster.direction = 1; // 오른쪽
+            else if (dr === 1 && dc === 0) this.monster.direction = 2; // 아래
+            else if (dr === 0 && dc === -1) this.monster.direction = 3; // 왼쪽
+            
             this.monster.row = nextRow;
             this.monster.col = nextCol;
             this.monster.pathToTarget.shift(); // 경로에서 제거
@@ -2249,6 +2675,12 @@ class MazeGame {
                 if (newRow >= 0 && newRow < this.rows &&
                     newCol >= 0 && newCol < this.cols &&
                     this.maze[newRow] && this.maze[newRow][newCol] === 0) {
+                    // 방향 업데이트
+                    if (dr === -1 && dc === 0) this.monster.direction = 0; // 위
+                    else if (dr === 0 && dc === 1) this.monster.direction = 1; // 오른쪽
+                    else if (dr === 1 && dc === 0) this.monster.direction = 2; // 아래
+                    else if (dr === 0 && dc === -1) this.monster.direction = 3; // 왼쪽
+                    
                     this.monster.row = newRow;
                     this.monster.col = newCol;
                     
@@ -2373,7 +2805,7 @@ class MazeGame {
     resetGame() {
         this.stopContinuousMove();
         this.keys = {};
-        this.playerPos = { ...this.startPos };
+        this.playerPos = { row: this.startPos.row, col: this.startPos.col, direction: 0 };
         this.visited = [];
         for (let i = 0; i < this.rows; i++) {
             this.visited[i] = [];
@@ -2385,9 +2817,15 @@ class MazeGame {
         this.moveCount = 0;
         this.gameWon = false;
         this.gameOver = false;
+        this.hasShovel = false;
+        this.hasSword = false;
         document.getElementById('moveCount').textContent = '0';
         document.getElementById('winMessage').classList.add('hidden');
         document.getElementById('gameOverMessage').classList.add('hidden');
+        document.getElementById('shovelBtn').disabled = true;
+        document.getElementById('shovelBtn').classList.add('disabled');
+        document.getElementById('swordBtn').disabled = true;
+        document.getElementById('swordBtn').classList.add('disabled');
         
         // 공포 모드가 활성화되어 있으면 괴물 재초기화
         if (this.horrorMode) {
