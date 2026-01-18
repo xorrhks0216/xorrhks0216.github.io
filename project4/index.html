@@ -9,8 +9,9 @@
 </head>
 <body>
     <div class="game-container">
-        <a href="../index.html" class="back-link">← 프로젝트 목록으로 돌아가기</a>
-        <header>
+        <div class="top-bar">
+            <a href="../index.html" class="back-link">← 프로젝트 목록으로 돌아가기</a>
+            <header>
             <h1>미로 탈출 게임</h1>
             <button id="settingsBtn" class="settings-btn" title="설정">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -19,6 +20,7 @@
                 </svg>
             </button>
         </header>
+        </div>
         
         <!-- 설정 메뉴 오버레이 -->
         <div id="settingsOverlay" class="settings-overlay hidden">
@@ -112,6 +114,19 @@
         </div>
 
         <div class="canvas-wrapper">
+            <!-- 모바일 가로 모드용 조이스틱 -->
+            <div id="joystickContainer" class="joystick-container hidden">
+                <div id="joystick" class="joystick">
+                    <div id="joystickHandle" class="joystick-handle"></div>
+                </div>
+            </div>
+            
+            <!-- 모바일 가로 모드용 아이템 버튼 -->
+            <div id="mobileItemButtons" class="mobile-item-buttons hidden">
+                <button id="mobileShovelBtn" class="mobile-item-btn disabled" disabled>삽</button>
+                <button id="mobileSwordBtn" class="mobile-item-btn disabled" disabled>칼</button>
+            </div>
+            
             <canvas id="mazeCanvas"></canvas>
             <div id="maze3D" class="maze-3d hidden">
                 <div id="compass" class="compass hidden">

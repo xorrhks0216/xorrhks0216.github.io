@@ -68,6 +68,14 @@ class MazeGame {
         this.direction = new THREE.Vector3();
         this.lastLogTime = 0;
         this.lastCollisionLog = 0;
+        
+        // 조이스틱 관련 변수
+        this.joystickActive = false;
+        this.joystickCenter = { x: 0, y: 0 };
+        this.joystickRadius = 60;
+        this.joystickHandleRadius = 25;
+        this.joystickDirection = null;
+        this.joystickMoveInterval = null;
 
         this.init();
     }
@@ -78,7 +86,220 @@ class MazeGame {
         this.setupEventListeners();
         this.setup3D();
         this.preloadTextures();
+        this.setupMobileControls();
+        this.checkMobileLandscape();
         this.draw();
+    }
+    
+    // 모바일 가로 모드 체크
+    checkMobileLandscape() {
+        const isLandscape = window.innerWidth > window.innerHeight && window.innerHeight <= 600;
+        const joystickContainer = document.getElementById('joystickContainer');
+        const mobileItemButtons = document.getElementById('mobileItemButtons');
+        const controlButtons = document.querySelector('.control-buttons');
+        
+        if (isLandscape && joystickContainer && mobileItemButtons) {
+            joystickContainer.classList.remove('hidden');
+            mobileItemButtons.classList.remove('hidden');
+            if (controlButtons) {
+                controlButtons.style.display = 'none';
+            }
+            // 가로 모드에서 캔버스 크기 재조정
+            this.adjustCanvasForLandscape();
+        } else {
+            if (joystickContainer) {
+                joystickContainer.classList.add('hidden');
+            }
+            if (mobileItemButtons) {
+                mobileItemButtons.classList.add('hidden');
+            }
+            if (controlButtons) {
+                controlButtons.style.display = 'flex';
+            }
+        }
+    }
+    
+    // 가로 모드에서 캔버스 크기 조정
+    adjustCanvasForLandscape() {
+        if (!this.canvas || this.rows === 0 || this.cols === 0) return;
+        
+        const canvasWrapper = document.querySelector('.canvas-wrapper');
+        if (!canvasWrapper) return;
+        
+        // 약간의 지연을 두어 레이아웃이 완전히 적용된 후 계산
+        setTimeout(() => {
+            const wrapperRect = canvasWrapper.getBoundingClientRect();
+            // 조이스틱(90px)과 버튼(65px * 2 + gap) 공간 고려
+            const availableWidth = wrapperRect.width - 180;
+            const availableHeight = wrapperRect.height - 10;
+            
+            const cellSizeByWidth = Math.floor(availableWidth / this.cols);
+            const cellSizeByHeight = Math.floor(availableHeight / this.rows);
+            this.cellSize = Math.min(cellSizeByWidth, cellSizeByHeight, 25);
+            
+            if (this.cellSize > 0) {
+                this.canvas.width = this.cols * this.cellSize;
+                this.canvas.height = this.rows * this.cellSize;
+                this.draw();
+            }
+        }, 50);
+    }
+    
+    // 모바일 컨트롤 설정
+    setupMobileControls() {
+        const joystick = document.getElementById('joystick');
+        const joystickHandle = document.getElementById('joystickHandle');
+        const joystickContainer = document.getElementById('joystickContainer');
+        
+        if (!joystick || !joystickHandle || !joystickContainer) return;
+        
+        // 조이스틱 중심 위치 계산
+        const updateJoystickCenter = () => {
+            const rect = joystickContainer.getBoundingClientRect();
+            this.joystickCenter.x = rect.left + rect.width / 2;
+            this.joystickCenter.y = rect.top + rect.height / 2;
+        };
+        
+        updateJoystickCenter();
+        window.addEventListener('resize', updateJoystickCenter);
+        
+        // 터치 시작
+        const handleStart = (e) => {
+            e.preventDefault();
+            this.joystickActive = true;
+            joystickHandle.classList.add('active');
+            updateJoystickCenter();
+            const touch = e.touches ? e.touches[0] : e;
+            this.updateJoystickPosition(touch.clientX, touch.clientY);
+        };
+        
+        // 터치 이동
+        const handleMove = (e) => {
+            if (!this.joystickActive) return;
+            e.preventDefault();
+            const touch = e.touches ? e.touches[0] : e;
+            this.updateJoystickPosition(touch.clientX, touch.clientY);
+        };
+        
+        // 터치 종료
+        const handleEnd = (e) => {
+            e.preventDefault();
+            this.joystickActive = false;
+            joystickHandle.classList.remove('active');
+            this.resetJoystick();
+        };
+        
+        // 마우스 이벤트 (데스크톱 테스트용)
+        joystick.addEventListener('mousedown', handleStart);
+        document.addEventListener('mousemove', handleMove);
+        document.addEventListener('mouseup', handleEnd);
+        
+        // 터치 이벤트
+        joystick.addEventListener('touchstart', handleStart, { passive: false });
+        document.addEventListener('touchmove', handleMove, { passive: false });
+        document.addEventListener('touchend', handleEnd, { passive: false });
+        document.addEventListener('touchcancel', handleEnd, { passive: false });
+        
+        // 모바일 아이템 버튼 이벤트
+        const mobileShovelBtn = document.getElementById('mobileShovelBtn');
+        const mobileSwordBtn = document.getElementById('mobileSwordBtn');
+        
+        if (mobileShovelBtn) {
+            mobileShovelBtn.addEventListener('click', () => {
+                if (this.hasShovel) {
+                    this.useShovel();
+                }
+            });
+        }
+        
+        if (mobileSwordBtn) {
+            mobileSwordBtn.addEventListener('click', () => {
+                if (this.hasSword) {
+                    this.useSword();
+                }
+            });
+        }
+    }
+    
+    // 조이스틱 위치 업데이트
+    updateJoystickPosition(clientX, clientY) {
+        const dx = clientX - this.joystickCenter.x;
+        const dy = clientY - this.joystickCenter.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 조이스틱 범위 내로 제한
+        const maxDistance = this.joystickRadius - this.joystickHandleRadius;
+        const clampedDistance = Math.min(distance, maxDistance);
+        const angle = Math.atan2(dy, dx);
+        
+        const handleX = Math.cos(angle) * clampedDistance;
+        const handleY = Math.sin(angle) * clampedDistance;
+        
+        const joystickHandle = document.getElementById('joystickHandle');
+        if (joystickHandle) {
+            joystickHandle.style.transform = `translate(calc(-50% + ${handleX}px), calc(-50% + ${handleY}px))`;
+        }
+        
+        // 방향 계산 (8방향)
+        const threshold = 0.3; // 최소 이동 거리
+        if (clampedDistance < threshold * maxDistance) {
+            this.joystickDirection = null;
+            this.stopJoystickMove();
+            return;
+        }
+        
+        // 방향 결정 (상하좌우 우선)
+        let direction = null;
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+        
+        if (absDy > absDx) {
+            // 상하
+            direction = dy < 0 ? { dr: -1, dc: 0 } : { dr: 1, dc: 0 };
+        } else {
+            // 좌우
+            direction = dx < 0 ? { dr: 0, dc: -1 } : { dr: 0, dc: 1 };
+        }
+        
+        this.joystickDirection = direction;
+        this.startJoystickMove();
+    }
+    
+    // 조이스틱 리셋
+    resetJoystick() {
+        const joystickHandle = document.getElementById('joystickHandle');
+        if (joystickHandle) {
+            joystickHandle.style.transform = 'translate(-50%, -50%)';
+        }
+        this.joystickDirection = null;
+        this.stopJoystickMove();
+    }
+    
+    // 조이스틱 이동 시작
+    startJoystickMove() {
+        if (this.joystickMoveInterval) return;
+        
+        // 즉시 이동
+        if (this.joystickDirection && !this.gameWon && !this.gameOver) {
+            this.movePlayer(this.joystickDirection.dr, this.joystickDirection.dc);
+        }
+        
+        // 연속 이동
+        this.joystickMoveInterval = setInterval(() => {
+            if (this.joystickDirection && !this.gameWon && !this.gameOver) {
+                this.movePlayer(this.joystickDirection.dr, this.joystickDirection.dc);
+            } else {
+                this.stopJoystickMove();
+            }
+        }, 150);
+    }
+    
+    // 조이스틱 이동 중지
+    stopJoystickMove() {
+        if (this.joystickMoveInterval) {
+            clearInterval(this.joystickMoveInterval);
+            this.joystickMoveInterval = null;
+        }
     }
 
     // 텍스처 이미지 미리 로드 (2D용만, project1 방식 참고)
@@ -148,11 +369,30 @@ class MazeGame {
         this.rows = size;
         this.cols = size;
         
-        // 캔버스 크기 조정
-        const maxCanvasSize = Math.min(window.innerWidth - 100, 600);
-        const cellSizeByWidth = Math.floor(maxCanvasSize / this.cols);
-        const cellSizeByHeight = Math.floor((window.innerHeight - 400) / this.rows);
-        this.cellSize = Math.min(cellSizeByWidth, cellSizeByHeight, 25);
+        // 가로 모드 체크
+        const isLandscape = window.innerWidth > window.innerHeight && window.innerHeight <= 600;
+        
+        if (isLandscape) {
+            // 가로 모드: canvas-wrapper 크기에 맞춤 (조이스틱과 버튼 공간 고려)
+            const canvasWrapper = document.querySelector('.canvas-wrapper');
+            if (canvasWrapper) {
+                const wrapperRect = canvasWrapper.getBoundingClientRect();
+                const availableWidth = wrapperRect.width - 200; // 좌우 여유 공간 (조이스틱 120px + 버튼 80px)
+                const availableHeight = wrapperRect.height - 20; // 상하 여유 공간
+                
+                const cellSizeByWidth = Math.floor(availableWidth / this.cols);
+                const cellSizeByHeight = Math.floor(availableHeight / this.rows);
+                this.cellSize = Math.min(cellSizeByWidth, cellSizeByHeight, 25);
+            } else {
+                this.cellSize = 20;
+            }
+        } else {
+            // 세로 모드: 기존 로직
+            const maxCanvasSize = Math.min(window.innerWidth - 100, 600);
+            const cellSizeByWidth = Math.floor(maxCanvasSize / this.cols);
+            const cellSizeByHeight = Math.floor((window.innerHeight - 400) / this.rows);
+            this.cellSize = Math.min(cellSizeByWidth, cellSizeByHeight, 25);
+        }
         
         this.canvas.width = this.cols * this.cellSize;
         this.canvas.height = this.rows * this.cellSize;
@@ -621,6 +861,16 @@ class MazeGame {
         document.getElementById('shovelBtn').classList.add('disabled');
         document.getElementById('swordBtn').disabled = true;
         document.getElementById('swordBtn').classList.add('disabled');
+        const mobileShovelBtn = document.getElementById('mobileShovelBtn');
+        const mobileSwordBtn = document.getElementById('mobileSwordBtn');
+        if (mobileShovelBtn) {
+            mobileShovelBtn.disabled = true;
+            mobileShovelBtn.classList.add('disabled');
+        }
+        if (mobileSwordBtn) {
+            mobileSwordBtn.disabled = true;
+            mobileSwordBtn.classList.add('disabled');
+        }
         
         // 공포 모드가 활성화되어 있으면 괴물 초기화
         if (this.horrorMode && this.monster) {
@@ -1126,6 +1376,18 @@ class MazeGame {
                 this.closeSettingsMenu();
             }
         });
+        
+        // 화면 크기 변경 시 모바일 레이아웃 체크
+        window.addEventListener('resize', () => {
+            this.checkMobileLandscape();
+        });
+        
+        // 화면 회전 시 모바일 레이아웃 체크
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                this.checkMobileLandscape();
+            }, 100);
+        });
     }
 
     // 설정 메뉴 열기
@@ -1268,10 +1530,24 @@ class MazeGame {
                     this.hasShovel = true;
                     document.getElementById('shovelBtn').disabled = false;
                     document.getElementById('shovelBtn').classList.remove('disabled');
+                    const mobileShovelBtn = document.getElementById('mobileShovelBtn');
+                    if (mobileShovelBtn) {
+                        mobileShovelBtn.disabled = false;
+                        mobileShovelBtn.classList.remove('disabled');
+                    }
+                    document.getElementById('mobileShovelBtn').disabled = false;
+                    document.getElementById('mobileShovelBtn').classList.remove('disabled');
                 } else if (item.type === 'sword') {
                     this.hasSword = true;
                     document.getElementById('swordBtn').disabled = false;
                     document.getElementById('swordBtn').classList.remove('disabled');
+                    const mobileSwordBtn = document.getElementById('mobileSwordBtn');
+                    if (mobileSwordBtn) {
+                        mobileSwordBtn.disabled = false;
+                        mobileSwordBtn.classList.remove('disabled');
+                    }
+                    document.getElementById('mobileSwordBtn').disabled = false;
+                    document.getElementById('mobileSwordBtn').classList.remove('disabled');
                 }
                 this.items.splice(i, 1);
             }
@@ -2910,6 +3186,16 @@ class MazeGame {
         document.getElementById('shovelBtn').classList.add('disabled');
         document.getElementById('swordBtn').disabled = true;
         document.getElementById('swordBtn').classList.add('disabled');
+        const mobileShovelBtn = document.getElementById('mobileShovelBtn');
+        const mobileSwordBtn = document.getElementById('mobileSwordBtn');
+        if (mobileShovelBtn) {
+            mobileShovelBtn.disabled = true;
+            mobileShovelBtn.classList.add('disabled');
+        }
+        if (mobileSwordBtn) {
+            mobileSwordBtn.disabled = true;
+            mobileSwordBtn.classList.add('disabled');
+        }
         
         // 캔버스 크기 조정
         const maxCanvasSize = Math.min(window.innerWidth - 100, 600);
@@ -2998,6 +3284,16 @@ class MazeGame {
         document.getElementById('shovelBtn').classList.add('disabled');
         document.getElementById('swordBtn').disabled = true;
         document.getElementById('swordBtn').classList.add('disabled');
+        const mobileShovelBtn = document.getElementById('mobileShovelBtn');
+        const mobileSwordBtn = document.getElementById('mobileSwordBtn');
+        if (mobileShovelBtn) {
+            mobileShovelBtn.disabled = true;
+            mobileShovelBtn.classList.add('disabled');
+        }
+        if (mobileSwordBtn) {
+            mobileSwordBtn.disabled = true;
+            mobileSwordBtn.classList.add('disabled');
+        }
         
         // 공포 모드가 활성화되어 있으면 괴물 재초기화
         if (this.horrorMode) {
