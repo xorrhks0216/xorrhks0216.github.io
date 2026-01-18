@@ -16,6 +16,7 @@ class MazeGame {
         this.hasSword = false; // 칼 보유 여부
         this.items = []; // 아이템 위치 배열 [{row, col, type: 'shovel'|'sword'}]
         this.itemImages = {}; // 아이템 이미지 캐시
+        this.savedMaze = null; // 현재 미로 상태 저장 (재시작용)
         this.showPath = false;
         this.gameWon = false;
         this.gameOver = false;
@@ -595,6 +596,9 @@ class MazeGame {
         // 아이템 배치 (시작점, 끝점과 겹치지 않도록)
         this.placeItems();
         
+        // 현재 미로 상태 저장 (재시작용)
+        this.saveCurrentMaze();
+        
         // 방문 기록 초기화
         this.visited = [];
         for (let i = 0; i < this.rows; i++) {
@@ -988,20 +992,16 @@ class MazeGame {
             }
         });
 
-        // 리셋 버튼
+        // 미로 재시작 버튼
         document.getElementById('resetBtn').addEventListener('click', () => {
-            this.resetGame();
+            this.closeSettingsMenu();
+            this.restartCurrentMaze();
         });
 
         // 새 미로 버튼
         document.getElementById('newMazeBtn').addEventListener('click', () => {
-            this.generateRandomSize();
-            this.generateMaze();
-            if (this.viewMode === '2D') {
-                this.draw();
-            } else {
-                this.create3DMaze(true); // 새 미로이므로 위치 리셋
-            }
+            this.closeSettingsMenu();
+            this.createNewMaze();
         });
         
         // 크기 입력 변경 시
@@ -1103,6 +1103,39 @@ class MazeGame {
                 this.useSword();
             }
         });
+
+        // 설정 메뉴 열기/닫기
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            this.openSettingsMenu();
+        });
+
+        document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+            this.closeSettingsMenu();
+        });
+
+        // 오버레이 클릭 시 메뉴 닫기
+        document.getElementById('settingsOverlay').addEventListener('click', (e) => {
+            if (e.target.id === 'settingsOverlay') {
+                this.closeSettingsMenu();
+            }
+        });
+
+        // ESC 키로 메뉴 닫기
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !document.getElementById('settingsOverlay').classList.contains('hidden')) {
+                this.closeSettingsMenu();
+            }
+        });
+    }
+
+    // 설정 메뉴 열기
+    openSettingsMenu() {
+        document.getElementById('settingsOverlay').classList.remove('hidden');
+    }
+
+    // 설정 메뉴 닫기
+    closeSettingsMenu() {
+        document.getElementById('settingsOverlay').classList.add('hidden');
     }
 
     updateCurrentDirection() {
@@ -2802,6 +2835,145 @@ class MazeGame {
         this.monster3D.position.set(x, 0.75, z);
     }
 
+    // 현재 미로 상태 저장
+    saveCurrentMaze() {
+        if (!this.maze || this.maze.length === 0) return;
+        
+        // 미로 배열 깊은 복사
+        const mazeCopy = [];
+        for (let i = 0; i < this.rows; i++) {
+            mazeCopy[i] = [];
+            for (let j = 0; j < this.cols; j++) {
+                mazeCopy[i][j] = this.maze[i][j];
+            }
+        }
+        
+        // 아이템 배열 깊은 복사
+        const itemsCopy = this.items.map(item => ({ ...item }));
+        
+        this.savedMaze = {
+            maze: mazeCopy,
+            rows: this.rows,
+            cols: this.cols,
+            startPos: { ...this.startPos },
+            endPos: { ...this.endPos },
+            items: itemsCopy
+        };
+    }
+    
+    // 현재 미로 재시작 (저장된 미로 상태로 복원)
+    restartCurrentMaze() {
+        if (!this.savedMaze) {
+            // 저장된 미로가 없으면 일반 리셋
+            this.resetGame();
+            return;
+        }
+        
+        this.stopContinuousMove();
+        this.keys = {};
+        
+        // 저장된 미로 상태 복원
+        this.rows = this.savedMaze.rows;
+        this.cols = this.savedMaze.cols;
+        this.maze = [];
+        for (let i = 0; i < this.rows; i++) {
+            this.maze[i] = [];
+            for (let j = 0; j < this.cols; j++) {
+                this.maze[i][j] = this.savedMaze.maze[i][j];
+            }
+        }
+        this.startPos = { ...this.savedMaze.startPos };
+        this.endPos = { ...this.savedMaze.endPos };
+        this.items = this.savedMaze.items.map(item => ({ ...item }));
+        
+        // 플레이어 위치 초기화
+        this.playerPos = { row: this.startPos.row, col: this.startPos.col, direction: 0 };
+        
+        // 방문 기록 초기화
+        this.visited = [];
+        for (let i = 0; i < this.rows; i++) {
+            this.visited[i] = [];
+            for (let j = 0; j < this.cols; j++) {
+                this.visited[i][j] = false;
+            }
+        }
+        this.path = [];
+        this.moveCount = 0;
+        this.gameWon = false;
+        this.gameOver = false;
+        this.hasShovel = false;
+        this.hasSword = false;
+        document.getElementById('moveCount').textContent = '0';
+        document.getElementById('winMessage').classList.add('hidden');
+        document.getElementById('gameOverMessage').classList.add('hidden');
+        document.getElementById('shovelBtn').disabled = true;
+        document.getElementById('shovelBtn').classList.add('disabled');
+        document.getElementById('swordBtn').disabled = true;
+        document.getElementById('swordBtn').classList.add('disabled');
+        
+        // 캔버스 크기 조정
+        const maxCanvasSize = Math.min(window.innerWidth - 100, 600);
+        const cellSizeByWidth = Math.floor(maxCanvasSize / this.cols);
+        const cellSizeByHeight = Math.floor((window.innerHeight - 400) / this.rows);
+        this.cellSize = Math.min(cellSizeByWidth, cellSizeByHeight, 25);
+        
+        this.canvas.width = this.cols * this.cellSize;
+        this.canvas.height = this.rows * this.cellSize;
+        
+        // 미로 정보 업데이트
+        document.getElementById('mazeSize').textContent = `${this.rows} x ${this.cols}`;
+        
+        // 공포 모드가 활성화되어 있으면 괴물 재초기화
+        if (this.horrorMode) {
+            this.initializeMonster();
+            this.startMonsterMovement();
+        } else {
+            this.stopMonsterMovement();
+            this.removeMonster();
+        }
+        
+        // 3D 모드에서 지나온 길 마커 제거
+        if (this.viewMode === '3D' && this.scene) {
+            this.pathMarkers.forEach(marker => this.scene.remove(marker));
+            this.pathMarkers = [];
+            this.create3DMaze(true);
+        } else {
+            this.draw();
+        }
+    }
+    
+    // 새 미로 생성 (설정값 반영)
+    createNewMaze() {
+        // 현재 설정값 읽기
+        const sizeInput = document.getElementById('mazeSizeInput');
+        let size = parseInt(sizeInput.value) || 30;
+        if (size < 15) size = 15;
+        if (size > 50) size = 50;
+        size = size % 2 === 0 ? size + 1 : size;
+        sizeInput.value = size;
+        
+        // 알고리즘 설정 읽기
+        const complexRadio = document.getElementById('algorithmComplex');
+        this.mazeAlgorithm = complexRadio.checked ? 'complex' : 'standard';
+        
+        // 벽면 텍스처 설정 읽기
+        const textureSelect = document.getElementById('wallTextureSelect');
+        this.wallTexture = textureSelect.value;
+        this.wallTexturePatterns = {};
+        this.wallTexture3D = {};
+        
+        // 미로 생성
+        this.rows = size;
+        this.cols = size;
+        this.generateMaze();
+        
+        if (this.viewMode === '2D') {
+            this.draw();
+        } else {
+            this.create3DMaze(true);
+        }
+    }
+    
     resetGame() {
         this.stopContinuousMove();
         this.keys = {};

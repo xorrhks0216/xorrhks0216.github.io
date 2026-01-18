@@ -12,7 +12,93 @@
         <a href="../index.html" class="back-link">← 프로젝트 목록으로 돌아가기</a>
         <header>
             <h1>미로 탈출 게임</h1>
+            <button id="settingsBtn" class="settings-btn" title="설정">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1m15.364-8.364l-4.243 4.243m0 8.485l4.243 4.243M4.636 4.636l4.243 4.243m0 8.485l-4.243 4.243"></path>
+                </svg>
+            </button>
         </header>
+        
+        <!-- 설정 메뉴 오버레이 -->
+        <div id="settingsOverlay" class="settings-overlay hidden">
+            <div class="settings-menu">
+                <div class="settings-header">
+                    <h2>설정</h2>
+                    <button id="closeSettingsBtn" class="close-btn">×</button>
+                </div>
+                <div class="settings-content">
+                    <div class="settings-section">
+                        <h3>게임 옵션</h3>
+                        <label class="option-label">
+                            <input type="checkbox" id="showPathToggle">
+                            지나온 길 표시
+                        </label>
+                        <label class="option-label">
+                            <input type="checkbox" id="horrorModeToggle">
+                            공포 모드
+                        </label>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>보기 모드</h3>
+                        <label class="option-label">
+                            <input type="radio" name="viewMode" id="view2D" value="2D" checked>
+                            2D 보기
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="viewMode" id="view3D" value="3D">
+                            3D 보기
+                        </label>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>미로 크기</h3>
+                        <div class="maze-size-selector">
+                            <label for="mazeSizeInput" class="size-label">크기:</label>
+                            <input type="number" id="mazeSizeInput" min="15" max="50" value="30" step="2" class="size-input">
+                            <span class="size-note">(홀수만 가능, 15-50)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>벽면 스타일</h3>
+                        <div class="texture-selector">
+                            <label for="wallTextureSelect" class="texture-label">스타일:</label>
+                            <select id="wallTextureSelect" class="texture-select">
+                                <option value="default">기본</option>
+                                <option value="wood">나무벽</option>
+                                <option value="vine">덩쿨</option>
+                                <option value="brick">벽돌</option>
+                                <option value="alley">골목</option>
+                                <option value="garden">정원</option>
+                                <option value="flower">꽃나무</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>미로 생성 알고리즘</h3>
+                        <label class="option-label">
+                            <input type="radio" name="mazeAlgorithm" id="algorithmComplex" value="complex" checked>
+                            복잡한 미로 (현재)
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="mazeAlgorithm" id="algorithmStandard" value="standard">
+                            일반 미로
+                        </label>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>게임 제어</h3>
+                        <div class="action-buttons">
+                            <button id="resetBtn" class="action-btn">미로 재시작</button>
+                            <button id="newMazeBtn" class="action-btn">새 미로</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <div class="game-info">
             <div class="info-item">
@@ -57,59 +143,6 @@
                 </div>
             </div>
 
-            <div class="game-options">
-                <label class="option-label">
-                    <input type="checkbox" id="showPathToggle">
-                    지나온 길 표시
-                </label>
-                <label class="option-label">
-                    <input type="checkbox" id="horrorModeToggle">
-                    공포 모드
-                </label>
-                <label class="option-label">
-                    <input type="radio" name="viewMode" id="view2D" value="2D" checked>
-                    2D 보기
-                </label>
-                <label class="option-label">
-                    <input type="radio" name="viewMode" id="view3D" value="3D">
-                    3D 보기
-                </label>
-            </div>
-
-            <div class="maze-size-selector">
-                <label for="mazeSizeInput" class="size-label">미로 크기:</label>
-                <input type="number" id="mazeSizeInput" min="15" max="50" value="30" step="2" class="size-input">
-                <span class="size-note">(홀수만 가능, 15-50)</span>
-            </div>
-
-            <div class="texture-selector">
-                <label for="wallTextureSelect" class="texture-label">벽면 스타일:</label>
-                <select id="wallTextureSelect" class="texture-select">
-                    <option value="default">기본</option>
-                    <option value="wood">나무벽</option>
-                    <option value="vine">덩쿨</option>
-                    <option value="brick">벽돌</option>
-                    <option value="alley">골목</option>
-                    <option value="garden">정원</option>
-                    <option value="flower">꽃나무</option>
-                </select>
-            </div>
-
-            <div class="maze-algorithm-selector">
-                <label class="option-label">
-                    <input type="radio" name="mazeAlgorithm" id="algorithmComplex" value="complex" checked>
-                    복잡한 미로 (현재)
-                </label>
-                <label class="option-label">
-                    <input type="radio" name="mazeAlgorithm" id="algorithmStandard" value="standard">
-                    일반 미로
-                </label>
-            </div>
-
-            <div class="action-buttons">
-                <button id="resetBtn" class="action-btn">미로 리셋</button>
-                <button id="newMazeBtn" class="action-btn">새 미로</button>
-            </div>
 
             <div class="instructions">
                 <p id="instructions2D">조작법: 방향키 또는 화면의 버튼을 사용하여 이동하세요.</p>
