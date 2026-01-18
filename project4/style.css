@@ -308,6 +308,16 @@ header h1 {
     padding: 0.5rem;
 }
 
+.maze-algorithm-selector {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    background: var(--background-color);
+    border-radius: 10px;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
 .texture-label {
     font-size: 0.95rem;
     color: var(--primary-color);

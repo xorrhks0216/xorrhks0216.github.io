@@ -18,6 +18,7 @@ class MazeGame {
         this.horrorMode = false;
         this.viewMode = '2D'; // '2D' or '3D'
         this.wallTexture = 'default'; // 벽면 텍스처 스타일
+        this.mazeAlgorithm = 'complex'; // 'complex' or 'standard'
         this.wallTexturePatterns = {}; // 2D 패턴 캐시
         this.wallTexture3D = {}; // 3D 텍스처 캐시
         this.textureImages = {}; // 로드된 이미지 캐시
@@ -129,6 +130,19 @@ class MazeGame {
     }
 
     generateMaze() {
+        // 선택된 알고리즘에 따라 미로 생성
+        if (this.mazeAlgorithm === 'complex') {
+            this.generateMazeComplex();
+        } else {
+            this.generateMazeStandard();
+        }
+        
+        // 공통 후처리
+        this.finalizeMaze();
+    }
+
+    // 복잡한 미로 생성 알고리즘 (현재 로직)
+    generateMazeComplex() {
         // 미로 초기화 (모든 셀을 벽으로)
         this.maze = [];
         for (let i = 0; i < this.rows; i++) {
@@ -341,6 +355,78 @@ class MazeGame {
             }
         }
 
+    }
+
+    // 일반적인 미로 생성 알고리즘 (Recursive Backtracking)
+    generateMazeStandard() {
+        // 미로 초기화 (모든 셀을 벽으로)
+        this.maze = [];
+        for (let i = 0; i < this.rows; i++) {
+            this.maze[i] = [];
+            for (let j = 0; j < this.cols; j++) {
+                this.maze[i][j] = 1; // 1 = 벽, 0 = 길
+            }
+        }
+
+        // Recursive Backtracking 알고리즘
+        const stack = [];
+        const visited = new Set();
+        
+        // 시작점 (홀수 좌표)
+        const startRow = 1;
+        const startCol = 1;
+        stack.push([startRow, startCol]);
+        visited.add(`${startRow},${startCol}`);
+        this.maze[startRow][startCol] = 0;
+        
+        const directions = [
+            [0, 2],   // 오른쪽
+            [2, 0],   // 아래
+            [0, -2],  // 왼쪽
+            [-2, 0]   // 위
+        ];
+        
+        while (stack.length > 0) {
+            const [currentRow, currentCol] = stack[stack.length - 1];
+            
+            // 방문하지 않은 인접 셀 찾기
+            const unvisitedNeighbors = [];
+            for (const [dr, dc] of directions) {
+                const nextRow = currentRow + dr;
+                const nextCol = currentCol + dc;
+                const key = `${nextRow},${nextCol}`;
+                
+                if (nextRow > 0 && nextRow < this.rows - 1 &&
+                    nextCol > 0 && nextCol < this.cols - 1 &&
+                    !visited.has(key) && this.maze[nextRow][nextCol] === 1) {
+                    unvisitedNeighbors.push([nextRow, nextCol, dr, dc]);
+                }
+            }
+            
+            if (unvisitedNeighbors.length > 0) {
+                // 랜덤하게 인접 셀 선택
+                const [nextRow, nextCol, dr, dc] = unvisitedNeighbors[
+                    Math.floor(Math.random() * unvisitedNeighbors.length)
+                ];
+                
+                // 벽 제거 (중간 벽도 제거)
+                const wallRow = currentRow + dr / 2;
+                const wallCol = currentCol + dc / 2;
+                this.maze[wallRow][wallCol] = 0;
+                this.maze[nextRow][nextCol] = 0;
+                
+                // 스택에 추가하고 방문 표시
+                stack.push([nextRow, nextCol]);
+                visited.add(`${nextRow},${nextCol}`);
+            } else {
+                // 더 이상 갈 곳이 없으면 백트래킹
+                stack.pop();
+            }
+        }
+    }
+
+    // 미로 생성 후 공통 후처리
+    finalizeMaze() {
         // 시작점과 끝점 설정
         this.startPos = { row: 1, col: 1 };
         this.endPos = { row: this.rows - 2, col: this.cols - 2 };
@@ -813,6 +899,35 @@ class MazeGame {
                 this.draw();
             } else if (this.viewMode === '3D' && this.scene) {
                 this.create3DMaze(false); // 현재 위치 유지하며 미로 재생성
+            }
+        });
+
+        // 미로 생성 알고리즘 선택
+        document.getElementById('algorithmComplex').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.mazeAlgorithm = 'complex';
+                // 알고리즘 변경 시 새 미로 생성
+                this.generateRandomSize();
+                this.generateMaze();
+                if (this.viewMode === '2D') {
+                    this.draw();
+                } else {
+                    this.create3DMaze(true);
+                }
+            }
+        });
+
+        document.getElementById('algorithmStandard').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.mazeAlgorithm = 'standard';
+                // 알고리즘 변경 시 새 미로 생성
+                this.generateRandomSize();
+                this.generateMaze();
+                if (this.viewMode === '2D') {
+                    this.draw();
+                } else {
+                    this.create3DMaze(true);
+                }
             }
         });
     }
