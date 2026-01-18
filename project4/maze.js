@@ -30,7 +30,10 @@ class MazeGame {
             direction: null, // 이동 방향
             moveTimer: null,
             moveInterval: 800, // 괴물 이동 간격 (ms)
-            speed: 1 // 이동 속도 (칸 단위)
+            speed: 1, // 이동 속도 (칸 단위)
+            lastSeenPlayerPos: null, // 마지막으로 플레이어를 목격한 위치
+            sightRange: 5, // 플레이어 목격 범위 (칸 단위)
+            pathToTarget: [] // 목표까지의 경로
         };
         this.monster3D = null; // 3D 괴물 객체
         
@@ -2011,6 +2014,8 @@ class MazeGame {
         this.monster.row = this.endPos.row;
         this.monster.col = this.endPos.col;
         this.monster.direction = null;
+        this.monster.lastSeenPlayerPos = null;
+        this.monster.pathToTarget = [];
         
         // 3D 괴물 생성
         if (this.viewMode === '3D' && this.scene) {
@@ -2042,21 +2047,174 @@ class MazeGame {
         }
     }
 
-    // 괴물 이동 로직
+    // 플레이어 목격 체크
+    canSeePlayer() {
+        if (!this.monster || !this.playerPos) return false;
+        
+        const distance = Math.abs(this.monster.row - this.playerPos.row) + 
+                        Math.abs(this.monster.col - this.playerPos.col);
+        
+        // 목격 범위 내에 있고, 시야선이 막히지 않았는지 확인
+        if (distance <= this.monster.sightRange) {
+            // BFS로 경로가 있는지 확인 (벽이 아닌 경로)
+            return this.hasPath(this.monster.row, this.monster.col, 
+                               this.playerPos.row, this.playerPos.col);
+        }
+        return false;
+    }
+
+    // BFS를 사용한 경로 찾기 (괴물용)
+    findPathBFS(startRow, startCol, endRow, endCol) {
+        if (startRow === endRow && startCol === endCol) {
+            return [];
+        }
+        
+        const queue = [[startRow, startCol]];
+        const visited = new Set();
+        const cameFrom = new Map();
+        visited.add(`${startRow},${startCol}`);
+        
+        const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+        
+        while (queue.length > 0) {
+            const [row, col] = queue.shift();
+            
+            if (row === endRow && col === endCol) {
+                // 경로 재구성
+                const path = [];
+                let current = [endRow, endCol];
+                
+                while (current) {
+                    path.unshift(current);
+                    const key = `${current[0]},${current[1]}`;
+                    current = cameFrom.get(key);
+                }
+                
+                // 시작점 제외하고 반환
+                return path.slice(1);
+            }
+            
+            for (const [dr, dc] of directions) {
+                const newRow = row + dr;
+                const newCol = col + dc;
+                const key = `${newRow},${newCol}`;
+                
+                if (newRow >= 0 && newRow < this.rows &&
+                    newCol >= 0 && newCol < this.cols &&
+                    !visited.has(key) &&
+                    this.maze[newRow] && this.maze[newRow][newCol] === 0) {
+                    visited.add(key);
+                    queue.push([newRow, newCol]);
+                    cameFrom.set(key, [row, col]);
+                }
+            }
+        }
+        
+        return []; // 경로를 찾을 수 없음
+    }
+
+    // 괴물 이동 로직 (개선된 버전)
     moveMonster() {
         if (!this.monster || !this.maze) return;
         
-        const directions = [
-            [0, 1],   // 오른쪽
-            [1, 0],   // 아래
-            [0, -1],  // 왼쪽
-            [-1, 0]   // 위
-        ];
+        // 플레이어 목격 체크
+        const canSee = this.canSeePlayer();
+        if (canSee) {
+            // 플레이어를 목격했으면 마지막 목격 위치 업데이트
+            this.monster.lastSeenPlayerPos = {
+                row: this.playerPos.row,
+                col: this.playerPos.col
+            };
+            // 목표까지의 경로 재계산
+            this.monster.pathToTarget = this.findPathBFS(
+                this.monster.row,
+                this.monster.col,
+                this.playerPos.row,
+                this.playerPos.col
+            );
+        }
         
-        // 현재 방향이 없거나 막혔으면 새 방향 선택
-        if (!this.monster.direction || this.isMonsterBlocked()) {
-            const availableDirections = [];
+        // 목표 위치 결정
+        let targetRow, targetCol;
+        if (this.monster.lastSeenPlayerPos) {
+            // 마지막 목격 위치로 이동
+            targetRow = this.monster.lastSeenPlayerPos.row;
+            targetCol = this.monster.lastSeenPlayerPos.col;
             
+            // 목격 위치에 도달했는지 확인
+            if (this.monster.row === targetRow && this.monster.col === targetCol) {
+                // 목격 위치에 도달했으면 플레이어를 다시 찾거나 랜덤 이동
+                if (!canSee) {
+                    // 플레이어를 다시 찾을 수 없으면 목격 위치 초기화
+                    this.monster.lastSeenPlayerPos = null;
+                    this.monster.pathToTarget = [];
+                } else {
+                    // 여전히 플레이어를 볼 수 있으면 계속 추적
+                    this.monster.pathToTarget = this.findPathBFS(
+                        this.monster.row,
+                        this.monster.col,
+                        this.playerPos.row,
+                        this.playerPos.col
+                    );
+                }
+            } else {
+                // 경로가 없거나 비어있으면 재계산
+                if (this.monster.pathToTarget.length === 0) {
+                    this.monster.pathToTarget = this.findPathBFS(
+                        this.monster.row,
+                        this.monster.col,
+                        targetRow,
+                        targetCol
+                    );
+                }
+            }
+        } else if (canSee) {
+            // 플레이어를 목격했지만 목격 위치가 없으면 직접 추적
+            targetRow = this.playerPos.row;
+            targetCol = this.playerPos.col;
+            this.monster.pathToTarget = this.findPathBFS(
+                this.monster.row,
+                this.monster.col,
+                targetRow,
+                targetCol
+            );
+        } else {
+            // 플레이어를 볼 수 없고 목격 위치도 없으면 랜덤 이동
+            targetRow = null;
+            targetCol = null;
+            this.monster.pathToTarget = [];
+        }
+        
+        // 경로를 따라 이동
+        if (this.monster.pathToTarget.length > 0) {
+            // 경로의 다음 위치로 이동
+            const [nextRow, nextCol] = this.monster.pathToTarget[0];
+            this.monster.row = nextRow;
+            this.monster.col = nextCol;
+            this.monster.pathToTarget.shift(); // 경로에서 제거
+            
+            // 3D 괴물 위치 업데이트
+            if (this.viewMode === '3D' && this.monster3D) {
+                this.updateMonster3DPos();
+            }
+            
+            // 충돌 체크
+            this.checkMonsterCollision();
+            
+            // 렌더링 업데이트
+            if (this.viewMode === '2D') {
+                this.draw();
+            }
+        } else {
+            // 경로가 없으면 랜덤 이동 (막다른 골목 방지)
+            const directions = [
+                [0, 1],   // 오른쪽
+                [1, 0],   // 아래
+                [0, -1],  // 왼쪽
+                [-1, 0]   // 위
+            ];
+            
+            const availableDirections = [];
             for (const [dr, dc] of directions) {
                 const newRow = this.monster.row + dr;
                 const newCol = this.monster.col + dc;
@@ -2069,48 +2227,44 @@ class MazeGame {
             }
             
             if (availableDirections.length > 0) {
-                // 랜덤하게 방향 선택 (플레이어 쪽으로 약간 치우치게)
+                // 플레이어 방향을 우선 고려하되, 막혀있으면 다른 방향 선택
                 const playerDir = this.getDirectionToPlayer();
+                let chosenDirection;
+                
                 if (playerDir && availableDirections.some(d => d[0] === playerDir[0] && d[1] === playerDir[1])) {
-                    // 플레이어 방향이 가능하면 60% 확률로 선택
-                    if (Math.random() < 0.6) {
-                        this.monster.direction = playerDir;
+                    // 플레이어 방향이 가능하면 70% 확률로 선택
+                    if (Math.random() < 0.7) {
+                        chosenDirection = playerDir;
                     } else {
-                        this.monster.direction = availableDirections[Math.floor(Math.random() * availableDirections.length)];
+                        chosenDirection = availableDirections[Math.floor(Math.random() * availableDirections.length)];
                     }
                 } else {
-                    this.monster.direction = availableDirections[Math.floor(Math.random() * availableDirections.length)];
-                }
-            }
-        }
-        
-        // 이동
-        if (this.monster.direction) {
-            const [dr, dc] = this.monster.direction;
-            const newRow = this.monster.row + dr;
-            const newCol = this.monster.col + dc;
-            
-            if (newRow >= 0 && newRow < this.rows &&
-                newCol >= 0 && newCol < this.cols &&
-                this.maze[newRow] && this.maze[newRow][newCol] === 0) {
-                this.monster.row = newRow;
-                this.monster.col = newCol;
-                
-                // 3D 괴물 위치 업데이트
-                if (this.viewMode === '3D' && this.monster3D) {
-                    this.updateMonster3DPos();
+                    chosenDirection = availableDirections[Math.floor(Math.random() * availableDirections.length)];
                 }
                 
-                // 충돌 체크
-                this.checkMonsterCollision();
+                const [dr, dc] = chosenDirection;
+                const newRow = this.monster.row + dr;
+                const newCol = this.monster.col + dc;
                 
-                // 렌더링 업데이트
-                if (this.viewMode === '2D') {
-                    this.draw();
+                if (newRow >= 0 && newRow < this.rows &&
+                    newCol >= 0 && newCol < this.cols &&
+                    this.maze[newRow] && this.maze[newRow][newCol] === 0) {
+                    this.monster.row = newRow;
+                    this.monster.col = newCol;
+                    
+                    // 3D 괴물 위치 업데이트
+                    if (this.viewMode === '3D' && this.monster3D) {
+                        this.updateMonster3DPos();
+                    }
+                    
+                    // 충돌 체크
+                    this.checkMonsterCollision();
+                    
+                    // 렌더링 업데이트
+                    if (this.viewMode === '2D') {
+                        this.draw();
+                    }
                 }
-            } else {
-                // 막혔으면 방향 초기화
-                this.monster.direction = null;
             }
         }
     }
