@@ -12,15 +12,32 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프로젝트 모음</title>
+    <meta name="description" content="부루마블, 주식 검색, 미로 탈출, 방탈출 등 다양한 웹 프로젝트를 모아둔 포트폴리오 페이지입니다.">
+    <title>프로젝트 모음 · Vibe Daddy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --background-color: #f5f6fa;
-            --text-color: #2c3e50;
-            --card-background: #ffffff;
-            --hover-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
+            --bg: #f4f5fb;
+            --bg-gradient-a: #eef2ff;
+            --bg-gradient-b: #fdf4ff;
+            --bg-gradient-c: #ecfeff;
+            --surface: rgba(255, 255, 255, 0.72);
+            --surface-solid: #ffffff;
+            --surface-border: rgba(255, 255, 255, 0.6);
+            --text: #0f172a;
+            --text-muted: #475569;
+            --text-subtle: #94a3b8;
+            --accent: #6366f1;
+            --accent-soft: rgba(99, 102, 241, 0.12);
+            --ring: rgba(99, 102, 241, 0.35);
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 30px 60px -20px rgba(79, 70, 229, 0.35);
+            --radius-lg: 22px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
         }
 
         * {
@@ -29,224 +46,383 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background: linear-gradient(135deg, #f5f6fa 0%, #e9ecef 100%);
+            font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+            background: var(--bg);
             min-height: 100vh;
-            padding: 1rem;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background:
+                radial-gradient(ellipse 80% 60% at 15% 0%, var(--bg-gradient-a) 0%, transparent 55%),
+                radial-gradient(ellipse 70% 50% at 85% 20%, var(--bg-gradient-b) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 60% at 50% 100%, var(--bg-gradient-c) 0%, transparent 60%),
+                var(--bg);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image:
+                radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+            mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 80%);
+            pointer-events: none;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2rem) 3rem;
         }
 
+        /* Header */
         header {
             text-align: center;
-            margin-bottom: 2rem;
-            padding: 1rem 0;
+            margin-bottom: clamp(2.5rem, 5vw, 4rem);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.9rem;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            margin-bottom: 1.25rem;
+        }
+
+        .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         h1 {
-            color: var(--primary-color);
-            font-size: clamp(1.8rem, 4vw, 2.5rem);
-            margin-bottom: 0.5rem;
-            font-weight: 700;
+            font-size: clamp(2rem, 5vw, 3.25rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            margin-bottom: 0.9rem;
+            background: linear-gradient(135deg, #0f172a 0%, #6366f1 60%, #ec4899 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
         }
 
         .description {
-            color: var(--text-color);
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
-            max-width: 600px;
+            color: var(--text-muted);
+            font-size: clamp(0.95rem, 2vw, 1.1rem);
+            max-width: 620px;
             margin: 0 auto;
-            opacity: 0.8;
         }
 
+        /* Grid */
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
-            margin-top: 1.5rem;
         }
 
+        /* Project card */
         .project-card {
-            background: var(--card-background);
-            border-radius: 15px;
+            position: relative;
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-lg);
             padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
             color: inherit;
-            border: 1px solid rgba(52, 152, 219, 0.1);
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+            box-shadow: var(--shadow-sm);
+            transition:
+                transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.3s ease;
             overflow: hidden;
+            isolation: isolate;
         }
 
         .project-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--secondary-color), #9b59b6);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0), rgba(236, 72, 153, 0));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            transition: background 0.3s ease;
+            pointer-events: none;
         }
 
         .project-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--hover-shadow);
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: transparent;
         }
 
         .project-card:hover::before {
-            transform: scaleX(1);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.6), rgba(236, 72, 153, 0.6));
         }
 
-        .project-card img {
+        .project-card:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--ring), var(--shadow-md);
+        }
+
+        /* Card thumb (icon banner) */
+        .card-thumb {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(2.5rem, 5vw, 3.25rem);
+            overflow: hidden;
+            color: #fff;
+            background: linear-gradient(135deg, var(--g-from, #6366f1) 0%, var(--g-to, #a855f7) 100%);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+        }
+
+        .card-thumb::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.25), transparent 45%),
+                radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.15), transparent 50%);
+            pointer-events: none;
+        }
+
+        .card-thumb img {
             width: 100%;
-            height: 200px;
+            height: 100%;
             object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            transition: transform 0.3s ease;
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        .project-card:hover img {
-            transform: scale(1.02);
+        .project-card:hover .card-thumb img {
+            transform: scale(1.05);
         }
 
-        .project-card h2 {
-            color: var(--primary-color);
-            margin-bottom: 0.8rem;
-            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
-            font-weight: 600;
+        .card-emoji {
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
         }
 
-        .project-card p {
-            color: var(--text-color);
-            margin-bottom: 1rem;
-            font-size: clamp(0.85rem, 2vw, 0.95rem);
-            line-height: 1.5;
+        /* Gradient variants */
+        .gradient-1 { --g-from: #f97316; --g-to: #ef4444; }
+        .gradient-2 { --g-from: #10b981; --g-to: #06b6d4; }
+        .gradient-3 { --g-from: #3b82f6; --g-to: #8b5cf6; }
+        .gradient-4 { --g-from: #6366f1; --g-to: #0f172a; }
+        .gradient-5 { --g-from: #ec4899; --g-to: #f59e0b; }
+        .gradient-6 { --g-from: #0ea5e9; --g-to: #14b8a6; }
+        .gradient-7 { --g-from: #7c3aed; --g-to: #db2777; }
+
+        /* Card body */
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            flex: 1;
         }
 
-        .project-card .date {
-            color: var(--secondary-color);
-            font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+        .card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            font-size: 0.78rem;
+            color: var(--text-subtle);
             font-weight: 500;
         }
 
+        .card-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.6rem;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.72rem;
+            letter-spacing: 0.02em;
+        }
+
+        .card-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .card-date::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--text-subtle);
+        }
+
+        .project-card h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text);
+            line-height: 1.35;
+        }
+
+        .project-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+
+        .card-arrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.25rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--accent);
+            transition: gap 0.3s ease;
+        }
+
+        .project-card:hover .card-arrow {
+            gap: 0.6rem;
+        }
+
+        /* Footer */
         footer {
             text-align: center;
-            margin-top: 3rem;
-            padding: 1.5rem 0;
-            color: var(--text-color);
-            opacity: 0.7;
-            font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+            margin-top: clamp(3rem, 6vw, 5rem);
+            padding-top: 2rem;
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+            color: var(--text-subtle);
+            font-size: 0.85rem;
         }
 
-        /* 모바일 최적화 */
-        @media (max-width: 768px) {
-            body {
-                padding: 0.5rem;
-            }
-
-            .container {
-                padding: 0 0.5rem;
-            }
-
-            header {
-                margin-bottom: 1.5rem;
-                padding: 0.5rem 0;
-            }
-
-            .projects-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-                margin-top: 1rem;
-            }
-
-            .project-card {
-                padding: 1.25rem;
-                display: flex;
-                gap: 1rem;
-                align-items: flex-start;
-            }
-
-            .project-card img {
-                width: 80px;
-                height: 80px;
-                flex-shrink: 0;
-                margin-bottom: 0;
-            }
-
-            .project-content {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-            }
-
-            .project-card h2 {
-                margin-bottom: 0.5rem;
-                font-size: 1.1rem;
-            }
-
-            .project-card p {
-                margin-bottom: 0.5rem;
-                font-size: 0.85rem;
-            }
-
-            .project-card .date {
-                font-size: 0.8rem;
-                margin-top: auto;
-            }
-
-            footer {
-                margin-top: 2rem;
-                padding: 1rem 0;
-            }
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
         }
 
-        /* 태블릿 최적화 */
-        @media (min-width: 769px) and (max-width: 1024px) {
+        footer a:hover {
+            color: var(--accent);
+        }
+
+        /* Tablet */
+        @media (max-width: 1024px) {
             .projects-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
-        /* 큰 화면 최적화 */
-        @media (min-width: 1025px) {
+        /* Mobile */
+        @media (max-width: 640px) {
             .projects-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .project-card {
+                padding: 1.1rem;
+                gap: 0.9rem;
+            }
+
+            .card-thumb {
+                aspect-ratio: 16 / 8;
             }
         }
 
-        /* 접근성 개선 */
+        /* Accessibility */
         @media (prefers-reduced-motion: reduce) {
-            .project-card {
-                transition: none;
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
             }
-            
+
             .project-card:hover {
                 transform: none;
             }
         }
 
-        /* 다크모드 지원 */
+        /* Dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
-                --primary-color: #3498db;
-                --secondary-color: #e74c3c;
-                --background-color: #1a1a1a;
-                --text-color: #ffffff;
-                --card-background: #2c2c2c;
+                --bg: #070a15;
+                --bg-gradient-a: rgba(67, 56, 202, 0.25);
+                --bg-gradient-b: rgba(190, 24, 93, 0.2);
+                --bg-gradient-c: rgba(6, 182, 212, 0.18);
+                --surface: rgba(22, 27, 42, 0.65);
+                --surface-solid: #161b2a;
+                --surface-border: rgba(255, 255, 255, 0.08);
+                --text: #f1f5f9;
+                --text-muted: #cbd5e1;
+                --text-subtle: #64748b;
+                --accent: #818cf8;
+                --accent-soft: rgba(129, 140, 248, 0.15);
+                --ring: rgba(129, 140, 248, 0.4);
+                --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+                --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.4);
+                --shadow-lg: 0 30px 60px -20px rgba(99, 102, 241, 0.45);
             }
 
-            body {
-                background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+            body::after {
+                background-image:
+                    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+            }
+
+            h1 {
+                background: linear-gradient(135deg, #f1f5f9 0%, #a5b4fc 55%, #f0abfc 100%);
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            footer {
+                border-top-color: rgba(255, 255, 255, 0.08);
             }
         }
     </style>
@@ -254,60 +430,121 @@
 <body>
     <div class="container">
         <header>
+            <span class="badge">Portfolio · 2025 – 2026</span>
             <h1>프로젝트 모음</h1>
-            <p class="description">여러 프로젝트들을 모아둔 페이지입니다. 각 프로젝트를 클릭하여 자세한 내용을 확인할 수 있습니다.</p>
+            <p class="description">웹 브라우저 하나로 즐길 수 있는 일곱 개의 미니 프로젝트를 모아 두었습니다. 카드를 눌러 각 작품을 직접 체험해 보세요.</p>
         </header>
 
         <div class="projects-grid">
             <a href="project1/index.html" class="project-card">
-                <img src="project1/images/corner_jump.jpg" alt="아이와 함께하는 부루마블 게임 스크린샷">
-                <div class="project-content">
+                <div class="card-thumb gradient-1">
+                    <img src="project1/images/corner_jump.jpg" alt="아이와 함께하는 부루마블 게임 스크린샷">
+                </div>
+                <div class="card-body">
+                    <div class="card-meta">
+                        <span class="card-tag">보드게임 · 교육</span>
+                        <span class="card-date">2025.04.16</span>
+                    </div>
                     <h2>아이와 함께하는 부루마블</h2>
-                    <p>주사위를 굴려 덧셈 문제를 풀며 게임과 학습을 동시에! 아이들이 재미있게 수학을 배울 수 있는 교육용 부루마블 게임입니다.</p>
-                    <p class="date">2025.04.08</p>
+                    <p>주사위를 굴려 덧셈 문제를 풀며 세계 여행! 개발자 모드·스페셜 카드·생일 파티 기금까지 담은 아이 전용 보드게임입니다.</p>
+                    <span class="card-arrow">플레이하기 →</span>
                 </div>
             </a>
 
             <a href="project2/index.html" class="project-card">
-                <h2>주식 조건 검색 시스템</h2>
-                <p>미국/한국 주식의 기술적 조건을 설정하고 검색하여 투자 아이디어를 발굴하는 시스템입니다. 가격 변화율, Stochastic, RSI 등 다양한 기술적 지표를 활용하여 주식을 검색할 수 있습니다.</p>
-                <p class="date">2025.06.26</p>
+                <div class="card-thumb gradient-2">
+                    <span class="card-emoji">📈</span>
+                </div>
+                <div class="card-body">
+                    <div class="card-meta">
+                        <span class="card-tag">데이터 · 금융</span>
+                        <span class="card-date">2025.06.26</span>
+                    </div>
+                    <h2>주식 조건 검색 시스템</h2>
+                    <p>가격 변화율·RSI·Stochastic 등 기술적 지표를 조합해 미국·한국 주식을 한 번에 스크리닝할 수 있는 웹 도구입니다.</p>
+                    <span class="card-arrow">검색 시작 →</span>
+                </div>
             </a>
 
             <a href="project3/index.html" class="project-card">
-                <h2>횡스크롤 2D 플랫폼 게임</h2>
-                <p>키보드나 터치로 조작하는 횡스크롤 플랫폼 게임입니다. 플랫폼을 점프하며 이동하고, 동전을 수집하고 가시 함정을 피해 목표 지점까지 도달하세요!</p>
-                <p class="date">2025.09.13</p>
+                <div class="card-thumb gradient-3">
+                    <span class="card-emoji">🎮</span>
+                </div>
+                <div class="card-body">
+                    <div class="card-meta">
+                        <span class="card-tag">게임 · 캔버스</span>
+                        <span class="card-date">2025.09.13</span>
+                    </div>
+                    <h2>횡스크롤 2D 플랫폼 게임</h2>
+                    <p>매 판마다 새롭게 생성되는 맵에서 동전을 모으고 가시 함정을 피해 골인 지점까지 도달하는 레트로 플랫포머입니다.</p>
+                    <span class="card-arrow">플레이하기 →</span>
+                </div>
             </a>
 
             <a href="project4/index.html" class="project-card">
-                <h2>미로 탈출 게임</h2>
-                <p>랜덤으로 생성되는 미로를 탈출하는 게임입니다. 키보드나 버튼으로 이동하며 시작점에서 끝점까지 도달하세요! 2D와 3D 뷰 모드를 지원합니다.</p>
-                <p class="date">2025.12.26</p>
+                <div class="card-thumb gradient-4">
+                    <span class="card-emoji">🗺️</span>
+                </div>
+                <div class="card-body">
+                    <div class="card-meta">
+                        <span class="card-tag">게임 · 3D</span>
+                        <span class="card-date">2025.12.26</span>
+                    </div>
+                    <h2>미로 탈출 게임</h2>
+                    <p>2D·3D 뷰를 오가며 즐기는 랜덤 생성 미로. 괴물 AI, 공포 모드, 삽·칼 아이템과 나침반까지 지원합니다.</p>
+                    <span class="card-arrow">탈출하기 →</span>
+                </div>
             </a>
 
             <a href="project5/index.html" class="project-card">
-                <h2>픽셀 아트 변환기</h2>
-                <p>이미지를 업로드하면 픽셀 스타일로 변환해주는 도구입니다. 드래그 앤 드롭으로 간편하게 사용할 수 있습니다!</p>
-                <p class="date">2025.12.31</p>
+                <div class="card-thumb gradient-5">
+                    <span class="card-emoji">🎨</span>
+                </div>
+                <div class="card-body">
+                    <div class="card-meta">
+                        <span class="card-tag">이미지 · 도구</span>
+                        <span class="card-date">2025.12.31</span>
+                    </div>
+                    <h2>픽셀 아트 변환기</h2>
+                    <p>이미지를 드래그 앤 드롭하면 원하는 픽셀 크기로 변환해 주는 도구. 미리보기와 다운로드를 바로 지원합니다.</p>
+                    <span class="card-arrow">변환하기 →</span>
+                </div>
             </a>
 
             <a href="project6/index.html" class="project-card">
-                <h2>전세계 시계</h2>
-                <p>전세계 여러 도시의 현재 시간을 한 번에 확인할 수 있는 시계입니다. 원하는 도시를 추가하고 날씨 정보도 함께 확인하세요!</p>
-                <p class="date">2026.01.02</p>
+                <div class="card-thumb gradient-6">
+                    <span class="card-emoji">🌍</span>
+                </div>
+                <div class="card-body">
+                    <div class="card-meta">
+                        <span class="card-tag">유틸리티</span>
+                        <span class="card-date">2026.01.02</span>
+                    </div>
+                    <h2>전세계 시계</h2>
+                    <p>전 세계 주요 도시의 현재 시각과 날씨를 한 화면에서 확인하는 다국적 시계. 원하는 도시를 자유롭게 추가할 수 있습니다.</p>
+                    <span class="card-arrow">확인하기 →</span>
+                </div>
             </a>
 
             <a href="project7/index.html" class="project-card">
-                <h2>방탈출: 미스터리 룸</h2>
-                <p>밀폐된 방에서 단서를 찾고 퍼즐을 풀어 탈출하는 방탈출 게임입니다. 숨겨진 오브젝트를 찾고 미스터리를 해결하세요!</p>
-                <p class="date">2026.03.29</p>
+                <div class="card-thumb gradient-7">
+                    <span class="card-emoji">🔐</span>
+                </div>
+                <div class="card-body">
+                    <div class="card-meta">
+                        <span class="card-tag">게임 · Godot</span>
+                        <span class="card-date">2026.03.29</span>
+                    </div>
+                    <h2>방탈출: 미스터리 룸</h2>
+                    <p>밀폐된 방에서 단서를 찾고 퍼즐을 풀어 탈출하는 Godot 기반 3D 방탈출 게임. 숨겨진 오브젝트를 찾아보세요.</p>
+                    <span class="card-arrow">입장하기 →</span>
+                </div>
             </a>
         </div>
 
         <footer>
-            <p>&copy; 2025 프로젝트 모음. All rights reserved.</p>
+            <p>&copy; 2025–2026 프로젝트 모음 · <a href="https://vibe-daddy.shop">vibe-daddy.shop</a></p>
         </footer>
     </div>
 </body>
-</html> 
+</html>
