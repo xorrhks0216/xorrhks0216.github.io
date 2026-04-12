@@ -77,6 +77,16 @@ class MazeGame {
         this.joystickDirection = null;
         this.joystickMoveInterval = null;
 
+        // 터치 기기 여부 및 3D 터치 조작 상태
+        this.isTouchDevice = (typeof window !== 'undefined') && (
+            (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ||
+            'ontouchstart' in window ||
+            (navigator.maxTouchPoints && navigator.maxTouchPoints > 0)
+        );
+        // 3D 모드에서 조이스틱이 생성한 연속 이동 벡터 (정규화: -1~1)
+        this.touch3D = { moveX: 0, moveZ: 0 };
+        this.touch3DLookId = null; // 시점 조작용 touch identifier
+
         this.init();
     }
 
@@ -91,31 +101,58 @@ class MazeGame {
         this.draw();
     }
     
-    // 모바일 가로 모드 체크
+    // 모바일 가로 모드 체크 (2D/3D × 세로/가로 통합 레이아웃)
     checkMobileLandscape() {
         const isLandscape = window.innerWidth > window.innerHeight && window.innerHeight <= 600;
+        const isTouch3D = this.isTouchDevice && this.viewMode === '3D';
+        // 터치 조작이 필요한 상황: 모바일 가로 모드이거나, 터치 기기에서 3D 모드일 때
+        const showTouchControls = isLandscape || isTouch3D;
+        // 3D 모드 시점 드래그 영역은 터치 기기의 3D 모드에서만 활성화
+        const showLookArea = isTouch3D;
+
         const joystickContainer = document.getElementById('joystickContainer');
         const mobileItemButtons = document.getElementById('mobileItemButtons');
         const controlButtons = document.querySelector('.control-buttons');
-        
-        if (isLandscape && joystickContainer && mobileItemButtons) {
-            joystickContainer.classList.remove('hidden');
-            mobileItemButtons.classList.remove('hidden');
-            if (controlButtons) {
-                controlButtons.style.display = 'none';
+        const instructions = document.querySelector('.instructions');
+        const touch3DLook = document.getElementById('touch3DLook');
+        const pointerLockInfo = document.getElementById('pointerLockInfo');
+
+        if (showTouchControls) {
+            if (joystickContainer) joystickContainer.classList.remove('hidden');
+            if (mobileItemButtons) mobileItemButtons.classList.remove('hidden');
+            // 터치 기기의 3D 모드 또는 모바일 가로 모드에서는 D-Pad를 감춘다
+            if (controlButtons) controlButtons.style.display = 'none';
+            if (instructions && isLandscape) {
+                instructions.style.display = 'none';
             }
-            // 가로 모드에서 캔버스 크기 재조정
-            this.adjustCanvasForLandscape();
         } else {
-            if (joystickContainer) {
-                joystickContainer.classList.add('hidden');
+            if (joystickContainer) joystickContainer.classList.add('hidden');
+            if (mobileItemButtons) mobileItemButtons.classList.add('hidden');
+            if (controlButtons) controlButtons.style.display = '';
+            if (instructions) instructions.style.display = '';
+        }
+
+        if (touch3DLook) {
+            if (showLookArea) {
+                touch3DLook.classList.remove('hidden');
+            } else {
+                touch3DLook.classList.add('hidden');
             }
-            if (mobileItemButtons) {
-                mobileItemButtons.classList.add('hidden');
-            }
-            if (controlButtons) {
-                controlButtons.style.display = 'flex';
-            }
+        }
+
+        // 터치 기기에서는 pointer lock 안내 메시지를 표시하지 않음
+        if (pointerLockInfo && this.isTouchDevice) {
+            pointerLockInfo.classList.add('hidden');
+        }
+
+        // 가로 모드에서는 캔버스 크기 재조정
+        if (isLandscape && this.viewMode === '2D') {
+            this.adjustCanvasForLandscape();
+        }
+
+        // 3D 렌더러 리사이즈 트리거
+        if (this.viewMode === '3D' && typeof this._update3DSize === 'function') {
+            this._update3DSize();
         }
     }
     
@@ -219,6 +256,70 @@ class MazeGame {
                 }
             });
         }
+
+        // 3D 모드 터치 시점 조작 (오른쪽 영역 드래그)
+        this.setupTouch3DLook();
+    }
+
+    // 3D 모드에서 터치 드래그로 시점을 회전
+    setupTouch3DLook() {
+        const lookArea = document.getElementById('touch3DLook');
+        if (!lookArea) return;
+
+        const sensitivity = 0.005;
+        let lastX = 0;
+        let lastY = 0;
+
+        const onStart = (e) => {
+            if (this.viewMode !== '3D' || this.touch3DLookId !== null) return;
+            e.preventDefault();
+            const touch = e.changedTouches[0];
+            this.touch3DLookId = touch.identifier;
+            lastX = touch.clientX;
+            lastY = touch.clientY;
+        };
+
+        const onMove = (e) => {
+            if (this.viewMode !== '3D' || this.touch3DLookId === null) return;
+            if (!this.camera) return;
+            // 일치하는 identifier 찾기
+            let matched = null;
+            for (const t of e.changedTouches) {
+                if (t.identifier === this.touch3DLookId) {
+                    matched = t;
+                    break;
+                }
+            }
+            if (!matched) return;
+            e.preventDefault();
+
+            const dx = matched.clientX - lastX;
+            const dy = matched.clientY - lastY;
+            lastX = matched.clientX;
+            lastY = matched.clientY;
+
+            this.euler.setFromQuaternion(this.camera.quaternion);
+            this.euler.y -= dx * sensitivity;
+            this.euler.x -= dy * sensitivity;
+            // 상하 시점 제한
+            this.euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.euler.x));
+            this.camera.quaternion.setFromEuler(this.euler);
+        };
+
+        const onEnd = (e) => {
+            if (this.touch3DLookId === null) return;
+            for (const t of e.changedTouches) {
+                if (t.identifier === this.touch3DLookId) {
+                    this.touch3DLookId = null;
+                    return;
+                }
+            }
+        };
+
+        lookArea.addEventListener('touchstart', onStart, { passive: false });
+        lookArea.addEventListener('touchmove', onMove, { passive: false });
+        lookArea.addEventListener('touchend', onEnd, { passive: false });
+        lookArea.addEventListener('touchcancel', onEnd, { passive: false });
     }
     
     // 조이스틱 위치 업데이트
@@ -226,33 +327,49 @@ class MazeGame {
         const dx = clientX - this.joystickCenter.x;
         const dy = clientY - this.joystickCenter.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
         // 조이스틱 범위 내로 제한
         const maxDistance = this.joystickRadius - this.joystickHandleRadius;
         const clampedDistance = Math.min(distance, maxDistance);
         const angle = Math.atan2(dy, dx);
-        
+
         const handleX = Math.cos(angle) * clampedDistance;
         const handleY = Math.sin(angle) * clampedDistance;
-        
+
         const joystickHandle = document.getElementById('joystickHandle');
         if (joystickHandle) {
             joystickHandle.style.transform = `translate(calc(-50% + ${handleX}px), calc(-50% + ${handleY}px))`;
         }
-        
+
         // 방향 계산 (8방향)
         const threshold = 0.3; // 최소 이동 거리
+
+        // 3D 모드: 연속 이동 벡터로 사용
+        if (this.viewMode === '3D') {
+            if (clampedDistance < threshold * maxDistance) {
+                this.touch3D.moveX = 0;
+                this.touch3D.moveZ = 0;
+            } else {
+                // -1~1 범위로 정규화. 화면 좌표계에서 y가 작을수록 위(전진)이므로 반전
+                const norm = clampedDistance / maxDistance;
+                this.touch3D.moveX = Math.cos(angle) * norm; // 양수 = 오른쪽으로 strafe
+                this.touch3D.moveZ = Math.sin(angle) * norm; // 양수 = 후진 (화면 아래)
+            }
+            return;
+        }
+
+        // 2D 모드: 기존 그리드 방향 이동
         if (clampedDistance < threshold * maxDistance) {
             this.joystickDirection = null;
             this.stopJoystickMove();
             return;
         }
-        
+
         // 방향 결정 (상하좌우 우선)
         let direction = null;
         const absDx = Math.abs(dx);
         const absDy = Math.abs(dy);
-        
+
         if (absDy > absDx) {
             // 상하
             direction = dy < 0 ? { dr: -1, dc: 0 } : { dr: 1, dc: 0 };
@@ -260,7 +377,7 @@ class MazeGame {
             // 좌우
             direction = dx < 0 ? { dr: 0, dc: -1 } : { dr: 0, dc: 1 };
         }
-        
+
         this.joystickDirection = direction;
         this.startJoystickMove();
     }
@@ -272,6 +389,8 @@ class MazeGame {
             joystickHandle.style.transform = 'translate(-50%, -50%)';
         }
         this.joystickDirection = null;
+        this.touch3D.moveX = 0;
+        this.touch3D.moveZ = 0;
         this.stopJoystickMove();
     }
     
@@ -1783,6 +1902,7 @@ class MazeGame {
         const updateSize = () => {
             const width = container.clientWidth || 800;
             const height = container.clientHeight || 600;
+            if (width === 0 || height === 0) return;
             this.camera.aspect = width / height;
             this.camera.updateProjectionMatrix();
             this.renderer.setSize(width, height);
@@ -1795,6 +1915,7 @@ class MazeGame {
 
         // 렌더러 생성
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         this.renderer.setSize(width, height);
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1802,6 +1923,18 @@ class MazeGame {
 
         // 리사이즈 이벤트
         window.addEventListener('resize', updateSize);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(updateSize, 200);
+        });
+
+        // 컨테이너 자체 크기 변경(모드 전환·모바일 툴바 노출 등)에도 대응
+        if (typeof ResizeObserver !== 'undefined') {
+            const resizeObserver = new ResizeObserver(() => updateSize());
+            resizeObserver.observe(container);
+        }
+
+        // 나중에 호출할 수 있도록 보관
+        this._update3DSize = updateSize;
 
         // 조명 추가
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -1831,12 +1964,13 @@ class MazeGame {
         const container = document.getElementById('maze3D');
         if (!container) return;
 
-        // 마우스 잠금
+        // 마우스 잠금 (터치 기기에서는 건너뜀 — 터치 시점 드래그로 대체)
         container.addEventListener('click', () => {
+            if (this.isTouchDevice) return;
             if (!this.isPointerLocked) {
                 try {
-                    container.requestPointerLock = container.requestPointerLock || 
-                        container.mozRequestPointerLock || 
+                    container.requestPointerLock = container.requestPointerLock ||
+                        container.mozRequestPointerLock ||
                         container.webkitRequestPointerLock;
                     if (container.requestPointerLock) {
                         container.requestPointerLock();
@@ -1855,7 +1989,10 @@ class MazeGame {
                 document.webkitPointerLockElement === container;
             const info = document.getElementById('pointerLockInfo');
             if (info) {
-                if (this.isPointerLocked) {
+                // 터치 기기에서는 항상 안내 메시지 숨김
+                if (this.isTouchDevice) {
+                    info.classList.add('hidden');
+                } else if (this.isPointerLocked) {
                     info.classList.add('hidden');
                 } else {
                     // 3D 모드일 때만 메시지 표시
@@ -1899,7 +2036,7 @@ class MazeGame {
             }
         });
 
-        // 3D 이동 (WASD) - 클래스 메서드로 변경
+        // 3D 이동 (WASD + 터치 조이스틱)
         this.move3D = () => {
             if (this.viewMode !== '3D' || this.gameWon || !this.camera) {
                 return;
@@ -1911,52 +2048,66 @@ class MazeGame {
             const left = this.keys['a'] || this.keys['arrowleft'];
             const right = this.keys['d'] || this.keys['arrowright'];
 
+            // 터치 조이스틱 벡터 (정규화된 -1~1 범위)
+            // 화면 좌표계에서 조이스틱의 -Z(위)가 전진이 되도록 부호 반전
+            const touchForward = -this.touch3D.moveZ;
+            const touchStrafe = this.touch3D.moveX;
+            const hasTouch = Math.abs(touchForward) > 0.05 || Math.abs(touchStrafe) > 0.05;
+
             // 이동이 있을 때만 처리
-            if (!forward && !backward && !left && !right) {
+            if (!forward && !backward && !left && !right && !hasTouch) {
                 return;
             }
 
             // 카메라의 방향 벡터 가져오기
             const direction = new THREE.Vector3();
             const right_vec = new THREE.Vector3();
-            
+
             // 카메라가 바라보는 방향 벡터 (전방)
             this.camera.getWorldDirection(direction);
-            
+
             // 수평 이동만 하도록 Y축 제거하고 정규화
             direction.y = 0;
             direction.normalize();
-            
+
             // 오른쪽 방향 벡터 계산 (전방 벡터를 Y축 기준으로 90도 회전)
             right_vec.crossVectors(direction, new THREE.Vector3(0, 1, 0));
             right_vec.normalize();
-            
+
             // 이동 벡터 계산
             let moveX = 0;
             let moveZ = 0;
-            
+
             // W: 앞으로
             if (forward) {
                 moveX += direction.x * this.moveSpeed;
                 moveZ += direction.z * this.moveSpeed;
             }
-            
+
             // S: 뒤로
             if (backward) {
                 moveX -= direction.x * this.moveSpeed;
                 moveZ -= direction.z * this.moveSpeed;
             }
-            
+
             // A: 왼쪽으로
             if (left) {
                 moveX -= right_vec.x * this.moveSpeed;
                 moveZ -= right_vec.z * this.moveSpeed;
             }
-            
+
             // D: 오른쪽으로
             if (right) {
                 moveX += right_vec.x * this.moveSpeed;
                 moveZ += right_vec.z * this.moveSpeed;
+            }
+
+            // 터치 조이스틱 기여분 (연속 가변 속도)
+            if (hasTouch) {
+                moveX += direction.x * touchForward * this.moveSpeed;
+                moveZ += direction.z * touchForward * this.moveSpeed;
+                moveX += right_vec.x * touchStrafe * this.moveSpeed;
+                moveZ += right_vec.z * touchStrafe * this.moveSpeed;
             }
 
             const currentX = this.camera.position.x;
@@ -2303,13 +2454,13 @@ class MazeGame {
         document.getElementById('maze3D').classList.add('hidden');
         document.getElementById('instructions2D').classList.remove('hidden');
         document.getElementById('instructions3D').classList.add('hidden');
-        
+
         // 나침반 숨기기
         const compass = document.getElementById('compass');
         if (compass) {
             compass.classList.add('hidden');
         }
-        
+
         if (this.isPointerLocked) {
             document.exitPointerLock();
         }
@@ -2318,6 +2469,11 @@ class MazeGame {
         if (info) {
             info.classList.add('hidden');
         }
+        // 3D 터치 조작 상태 초기화
+        this.touch3D.moveX = 0;
+        this.touch3D.moveZ = 0;
+        // 레이아웃 갱신 (터치 시점 영역 숨기기, D-Pad 복원)
+        this.checkMobileLandscape();
         this.draw();
     }
 
@@ -2328,24 +2484,29 @@ class MazeGame {
         document.getElementById('maze3D').classList.remove('hidden');
         document.getElementById('instructions2D').classList.add('hidden');
         document.getElementById('instructions3D').classList.remove('hidden');
-        
+
         // 나침반 표시
         const compass = document.getElementById('compass');
         if (compass) {
             compass.classList.remove('hidden');
         }
-        
+
         if (!this.scene) {
             this.setup3D();
         }
-        
+
+        // 레이아웃 갱신 (터치 시점 영역 노출, D-Pad 숨김 등)
+        this.checkMobileLandscape();
+
         // 약간의 지연 후 미로 생성 (렌더러가 준비될 때까지)
         // resetPosition = false: 현재 플레이어 위치 유지
         setTimeout(() => {
+            // 3D 컨테이너가 visible 상태가 되어 크기가 확정된 뒤 렌더러 리사이즈
+            if (this._update3DSize) this._update3DSize();
             this.create3DMaze(false);
             console.log('3D maze created, camera:', this.camera);
         }, 100);
-        
+
         // 공포 모드가 활성화되어 있으면 괴물 이동 계속
         if (this.horrorMode) {
             this.startMonsterMovement();
