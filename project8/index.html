@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘 심기 좋은 식물 · Vibe Daddy</title>
+    <meta name="description" content="현재 위치와 날씨, 오늘 날짜를 기반으로 지금 심기 좋은 씨앗·모종을 추천해 드립니다.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f4fbf5;
+            --bg-gradient-a: #dcfce7;
+            --bg-gradient-b: #fef9c3;
+            --bg-gradient-c: #cffafe;
+            --surface: rgba(255, 255, 255, 0.78);
+            --surface-solid: #ffffff;
+            --surface-border: rgba(255, 255, 255, 0.65);
+            --text: #0f172a;
+            --text-muted: #475569;
+            --text-subtle: #94a3b8;
+            --accent: #16a34a;
+            --accent-strong: #15803d;
+            --accent-soft: rgba(22, 163, 74, 0.12);
+            --accent-ring: rgba(22, 163, 74, 0.35);
+            --seed: #f59e0b;
+            --seed-soft: rgba(245, 158, 11, 0.14);
+            --seedling: #22c55e;
+            --seedling-soft: rgba(34, 197, 94, 0.14);
+            --flower: #ec4899;
+            --flower-soft: rgba(236, 72, 153, 0.14);
+            --fruit: #ef4444;
+            --fruit-soft: rgba(239, 68, 68, 0.14);
+            --general: #0ea5e9;
+            --general-soft: rgba(14, 165, 233, 0.14);
+            --warn: #d97706;
+            --danger: #dc2626;
+            --radius-lg: 22px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 30px 60px -20px rgba(22, 163, 74, 0.35);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background:
+                radial-gradient(ellipse 80% 60% at 15% 0%, var(--bg-gradient-a) 0%, transparent 55%),
+                radial-gradient(ellipse 70% 50% at 85% 20%, var(--bg-gradient-b) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 60% at 50% 100%, var(--bg-gradient-c) 0%, transparent 60%),
+                var(--bg);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+            mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 80%);
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem) 3rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0.9rem;
+            margin-bottom: 1.5rem;
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--surface-border);
+            border-radius: 999px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+            transform: translateX(-2px);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: clamp(2rem, 4vw, 3rem);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.9rem;
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            border: 1px solid rgba(22, 163, 74, 0.2);
+            margin-bottom: 1.25rem;
+        }
+
+        .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.25rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.15;
+            margin-bottom: 0.9rem;
+            background: linear-gradient(135deg, #0f172a 0%, #16a34a 55%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        header .description {
+            color: var(--text-muted);
+            font-size: clamp(0.95rem, 2vw, 1.1rem);
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        /* Context card */
+        .context-card {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            padding: clamp(1.25rem, 2.5vw, 1.75rem);
+            background: var(--surface);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .context-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            min-width: 0;
+        }
+
+        .context-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-subtle);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .context-value {
+            font-size: clamp(1rem, 1.8vw, 1.2rem);
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.35;
+            word-break: keep-all;
+        }
+
+        .context-value .sub {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .context-value.loading {
+            color: var(--text-subtle);
+            font-weight: 500;
+        }
+
+        .context-value.error {
+            color: var(--danger);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .refresh-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--surface-border);
+            background: var(--surface-solid);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .refresh-btn:hover {
+            color: var(--accent);
+            transform: rotate(180deg);
+        }
+
+        .refresh-btn.spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Controls / Filters */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem 2rem;
+            padding: 1.1rem 1.25rem;
+            background: var(--surface);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-subtle);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .filter-pills {
+            display: inline-flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            padding: 0.45rem 0.85rem;
+            background: transparent;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+
+        .pill:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .pill.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
+        }
+
+        /* Plants section */
+        .plants-section {
+            margin-bottom: 2rem;
+        }
+
+        .plants-header {
+            display: flex;
+            align-items: baseline;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding: 0 0.25rem;
+        }
+
+        .plants-header h2 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        .plants-count {
+            font-size: 0.85rem;
+            color: var(--text-subtle);
+            font-weight: 500;
+        }
+
+        .plants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .plant-card {
+            position: relative;
+            background: var(--surface);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-lg);
+            padding: 1.35rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            box-shadow: var(--shadow-sm);
+            transition:
+                transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .plant-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .plant-card.hot::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1.5px;
+            background: linear-gradient(135deg, #f59e0b, #16a34a);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .plant-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .plant-emoji {
+            width: 62px;
+            height: 62px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #ecfccb, #d1fae5);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+        }
+
+        .match-box {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.25rem;
+        }
+
+        .match-pct {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--accent-strong);
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .match-bar {
+            width: 80px;
+            height: 5px;
+            background: rgba(15, 23, 42, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .match-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #84cc16, #16a34a);
+            border-radius: inherit;
+            transition: width 0.6s ease;
+        }
+
+        .hot-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--seed);
+            padding: 0.15rem 0.45rem;
+            background: var(--seed-soft);
+            border-radius: 999px;
+        }
+
+        .plant-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            line-height: 1.25;
+        }
+
+        .plant-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .tag.seed { background: var(--seed-soft); color: var(--seed); }
+        .tag.seedling { background: var(--seedling-soft); color: var(--seedling); }
+        .tag.flower { background: var(--flower-soft); color: var(--flower); }
+        .tag.fruit { background: var(--fruit-soft); color: var(--fruit); }
+        .tag.general { background: var(--general-soft); color: var(--general); }
+
+        .plant-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+
+        .plant-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed rgba(15, 23, 42, 0.1);
+            font-size: 0.8rem;
+        }
+
+        .stat-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .stat-row .stat-icon {
+            font-size: 0.95rem;
+            width: 18px;
+            text-align: center;
+        }
+
+        .stat-row .stat-value {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .stat-row.warn .stat-value { color: var(--warn); }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: var(--surface);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px dashed rgba(15, 23, 42, 0.15);
+            border-radius: var(--radius-lg);
+            color: var(--text-muted);
+        }
+
+        .empty-emoji { font-size: 3rem; margin-bottom: 0.75rem; }
+        .empty-state p { font-weight: 600; }
+        .empty-state .empty-sub { font-weight: 400; font-size: 0.88rem; color: var(--text-subtle); margin-top: 0.25rem; }
+
+        /* Info card */
+        .info-card {
+            padding: 1.5rem;
+            background: var(--surface);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+        }
+
+        .info-card h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+        }
+
+        .info-card ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        .info-card li {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .info-card li::before {
+            content: '🌱';
+            flex-shrink: 0;
+        }
+
+        .info-note {
+            margin-top: 0.9rem;
+            padding-top: 0.9rem;
+            border-top: 1px dashed rgba(15, 23, 42, 0.1);
+            font-size: 0.78rem;
+            color: var(--text-subtle);
+            line-height: 1.55;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            color: var(--text-subtle);
+            font-size: 0.8rem;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        footer a:hover { color: var(--accent); }
+
+        /* Tablet */
+        @media (max-width: 768px) {
+            .context-card {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding-top: 2.5rem;
+            }
+
+            .refresh-btn {
+                top: 0.75rem;
+                right: 0.75rem;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 540px) {
+            .plants-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .controls {
+                gap: 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .plant-emoji {
+                width: 54px;
+                height: 54px;
+                font-size: 1.75rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .plant-card:hover { transform: none; }
+            .refresh-btn:hover { transform: none; }
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #081017;
+                --bg-gradient-a: rgba(22, 163, 74, 0.22);
+                --bg-gradient-b: rgba(234, 179, 8, 0.18);
+                --bg-gradient-c: rgba(14, 165, 233, 0.18);
+                --surface: rgba(22, 27, 42, 0.65);
+                --surface-solid: #161b2a;
+                --surface-border: rgba(255, 255, 255, 0.08);
+                --text: #f1f5f9;
+                --text-muted: #cbd5e1;
+                --text-subtle: #64748b;
+                --accent: #4ade80;
+                --accent-strong: #86efac;
+                --accent-soft: rgba(74, 222, 128, 0.15);
+                --accent-ring: rgba(74, 222, 128, 0.35);
+                --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+                --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.4);
+                --shadow-lg: 0 30px 60px -20px rgba(74, 222, 128, 0.45);
+            }
+
+            body::after {
+                background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+            }
+
+            h1 {
+                background: linear-gradient(135deg, #f1f5f9 0%, #86efac 55%, #fde68a 100%);
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .plant-emoji {
+                background: linear-gradient(135deg, rgba(132, 204, 22, 0.18), rgba(22, 163, 74, 0.22));
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+            }
+
+            .pill {
+                border-color: rgba(255, 255, 255, 0.12);
+            }
+
+            .plant-stats {
+                border-top-color: rgba(255, 255, 255, 0.1);
+            }
+
+            .info-note, .info-card li, .info-card ul {
+                /* inherit */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 프로젝트 목록으로 돌아가기</a>
+
+        <header>
+            <span class="badge">오늘의 식재 가이드</span>
+            <h1>오늘 심기 좋은 식물</h1>
+            <p class="description">현재 위치·오늘 날짜·지금 기온을 기반으로 지금 뿌리기에 가장 알맞은 씨앗과 모종을 찾아드립니다.</p>
+        </header>
+
+        <section class="context-card">
+            <div class="context-item">
+                <span class="context-label">오늘 날짜</span>
+                <span class="context-value" id="dateValue">-</span>
+            </div>
+            <div class="context-item">
+                <span class="context-label">위치</span>
+                <span class="context-value loading" id="locationValue">위치 확인 중…</span>
+            </div>
+            <div class="context-item">
+                <span class="context-label">현재 날씨</span>
+                <span class="context-value loading" id="weatherValue">날씨 확인 중…</span>
+            </div>
+            <button class="refresh-btn" id="refreshBtn" type="button" aria-label="다시 불러오기" title="다시 불러오기">↻</button>
+        </section>
+
+        <section class="controls">
+            <div class="filter-group">
+                <span class="filter-label">형태</span>
+                <div class="filter-pills" data-filter="form">
+                    <button class="pill active" data-value="all" type="button">전체</button>
+                    <button class="pill" data-value="seed" type="button">🌱 씨앗</button>
+                    <button class="pill" data-value="seedling" type="button">🪴 모종</button>
+                </div>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">종류</span>
+                <div class="filter-pills" data-filter="category">
+                    <button class="pill active" data-value="all" type="button">전체</button>
+                    <button class="pill" data-value="flower" type="button">🌸 꽃</button>
+                    <button class="pill" data-value="fruit" type="button">🍓 과일</button>
+                    <button class="pill" data-value="general" type="button">🥬 일반식물</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="plants-section">
+            <div class="plants-header">
+                <h2 id="plantsTitle">추천 식물</h2>
+                <span class="plants-count" id="plantsCount"></span>
+            </div>
+            <div class="plants-grid" id="plantsGrid"></div>
+            <div class="empty-state" id="emptyState" hidden>
+                <div class="empty-emoji">🌧️</div>
+                <p>지금 조건에 딱 맞는 식물이 없어요.</p>
+                <p class="empty-sub">필터를 완화하거나 날씨가 좀 더 따뜻해진 뒤 다시 확인해 보세요.</p>
+            </div>
+        </section>
+
+        <section class="info-card">
+            <h3>어떻게 추천하나요?</h3>
+            <ul>
+                <li>오늘이 속한 달이 식물의 파종 적기인지 확인합니다.</li>
+                <li>현재 기온이 해당 식물의 생육 적온 범위에 들어가는지 확인합니다.</li>
+                <li>두 조건을 합산한 점수가 높은 순서대로 카드로 보여드립니다.</li>
+                <li>남반구에서 접속하면 계절을 자동으로 반전해 계산합니다.</li>
+            </ul>
+            <p class="info-note">※ 추천은 일반적인 한국 가드닝 기준을 바탕으로 한 가이드라인입니다. 실제 재배는 토양·일조·품종·해당 지역의 미기후에 따라 차이가 날 수 있어요.</p>
+        </section>
+
+        <footer>
+            <p>© 2026 Vibe Daddy · <a href="../index.html">프로젝트 목록</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const PLANTS = [
+            // 꽃 (flower)
+            { name: '해바라기', emoji: '🌻', category: 'flower', forms: ['seed'], months: [4, 5, 6], tempMin: 15, tempMax: 32, desc: '따뜻한 봄에 씨앗을 심으면 여름에 노란 꽃이 활짝 피는 대표 여름꽃입니다.' },
+            { name: '코스모스', emoji: '🌸', category: 'flower', forms: ['seed'], months: [4, 5, 6, 7], tempMin: 15, tempMax: 30, desc: '가을을 상징하는 가볍고 낭만적인 꽃. 봄부터 초여름 사이에 씨를 뿌립니다.' },
+            { name: '튤립', emoji: '🌷', category: 'flower', forms: ['seed'], months: [10, 11], tempMin: 2, tempMax: 16, desc: '늦가을에 구근을 심어 이듬해 봄에 화려하게 피어나는 대표 봄꽃입니다.' },
+            { name: '나팔꽃', emoji: '🌺', category: 'flower', forms: ['seed'], months: [4, 5], tempMin: 18, tempMax: 32, desc: '여름 아침마다 나팔 모양의 꽃을 피우는 덩굴식물. 울타리나 벽을 타고 자랍니다.' },
+            { name: '팬지', emoji: '🌼', category: 'flower', forms: ['seedling'], months: [3, 4, 9, 10], tempMin: 3, tempMax: 20, desc: '추위에 강해 이른 봄과 가을에 모종으로 심으면 오랫동안 꽃을 즐길 수 있습니다.' },
+            { name: '백일홍', emoji: '💮', category: 'flower', forms: ['seed'], months: [4, 5, 6], tempMin: 18, tempMax: 32, desc: '이름처럼 100일 동안 꽃을 피운다는 여름~가을의 대표 화단 꽃입니다.' },
+            { name: '봉선화', emoji: '🌺', category: 'flower', forms: ['seed'], months: [4, 5], tempMin: 16, tempMax: 30, desc: '손톱을 물들이던 추억의 꽃. 봄에 씨를 뿌리면 여름 내내 즐길 수 있습니다.' },
+            { name: '국화', emoji: '🏵️', category: 'flower', forms: ['seedling'], months: [4, 5, 6], tempMin: 12, tempMax: 28, desc: '가을을 대표하는 꽃. 봄에 모종을 심어두면 가을에 풍성하게 개화합니다.' },
+            { name: '장미', emoji: '🌹', category: 'flower', forms: ['seedling'], months: [3, 4, 10, 11], tempMin: 5, tempMax: 24, desc: '사랑받는 꽃의 여왕. 이른 봄이나 늦가을에 모종을 심어야 뿌리 활착이 좋습니다.' },
+            { name: '수국', emoji: '💠', category: 'flower', forms: ['seedling'], months: [3, 4, 10, 11], tempMin: 5, tempMax: 22, desc: '장마철 풍성한 꽃송이가 매력. 이른 봄이나 늦가을에 모종을 심는 것이 적기입니다.' },
+
+            // 과일 (fruit)
+            { name: '딸기', emoji: '🍓', category: 'fruit', forms: ['seedling'], months: [3, 4, 9, 10], tempMin: 8, tempMax: 24, desc: '봄이나 가을에 모종을 심으면 다음 수확 시기에 달콤한 열매를 맺습니다.' },
+            { name: '토마토', emoji: '🍅', category: 'fruit', forms: ['seed', 'seedling'], months: [4, 5], tempMin: 15, tempMax: 30, desc: '늦서리 걱정이 없을 때 모종을 심으면 여름 내내 수확이 가능합니다.' },
+            { name: '수박', emoji: '🍉', category: 'fruit', forms: ['seed', 'seedling'], months: [4, 5], tempMin: 20, tempMax: 34, desc: '더위에 강한 대표 여름 과일. 기온이 충분히 올라간 뒤 심어야 잘 자랍니다.' },
+            { name: '참외', emoji: '🍈', category: 'fruit', forms: ['seed', 'seedling'], months: [4, 5], tempMin: 18, tempMax: 32, desc: '한국의 대표 여름 과일. 수박과 비슷한 조건에서 튼튼하게 자랍니다.' },
+            { name: '블루베리', emoji: '🫐', category: 'fruit', forms: ['seedling'], months: [3, 4, 10, 11], tempMin: 5, tempMax: 24, desc: '산성 토양을 좋아하는 베리. 이른 봄이나 늦가을이 묘목을 내릴 적기입니다.' },
+            { name: '포도', emoji: '🍇', category: 'fruit', forms: ['seedling'], months: [3, 4], tempMin: 8, tempMax: 24, desc: '봄에 묘목을 심어 2~3년 후부터 수확할 수 있는 다년생 과일나무입니다.' },
+            { name: '체리', emoji: '🍒', category: 'fruit', forms: ['seedling'], months: [3, 4, 10, 11], tempMin: 4, tempMax: 22, desc: '이른 봄이나 늦가을에 묘목을 심어 여러 해에 걸쳐 키우는 과실수입니다.' },
+            { name: '사과', emoji: '🍎', category: 'fruit', forms: ['seedling'], months: [3, 4, 11], tempMin: 4, tempMax: 22, desc: '낙엽기에 맞춰 묘목을 심는 다년생 과일나무. 추위에 강한 편입니다.' },
+
+            // 일반식물 (general - 채소·허브)
+            { name: '상추', emoji: '🥬', category: 'general', forms: ['seed', 'seedling'], months: [3, 4, 5, 9, 10], tempMin: 8, tempMax: 24, desc: '빨리 자라고 관리가 쉬워 초보자에게 가장 추천되는 잎채소입니다.' },
+            { name: '고추', emoji: '🌶️', category: 'general', forms: ['seedling'], months: [4, 5], tempMin: 16, tempMax: 32, desc: '한국 식탁의 필수품. 모종을 구입해 텃밭이나 화분에 옮겨 심습니다.' },
+            { name: '오이', emoji: '🥒', category: 'general', forms: ['seed', 'seedling'], months: [4, 5], tempMin: 18, tempMax: 30, desc: '빠르게 자라는 덩굴채소. 지주대를 세워 주면 수확량이 크게 늘어납니다.' },
+            { name: '배추', emoji: '🥗', category: 'general', forms: ['seed'], months: [8, 9], tempMin: 10, tempMax: 22, desc: '김장의 주인공. 늦여름부터 초가을 사이에 심어 초겨울에 수확합니다.' },
+            { name: '무', emoji: '🌿', category: 'general', forms: ['seed'], months: [3, 4, 8, 9], tempMin: 8, tempMax: 24, desc: '봄과 가을 두 번 파종이 가능한 대표 뿌리채소입니다.' },
+            { name: '당근', emoji: '🥕', category: 'general', forms: ['seed'], months: [3, 4, 8, 9], tempMin: 8, tempMax: 24, desc: '서늘한 기후를 좋아해 봄·가을에 씨앗으로 파종하면 실패가 적습니다.' },
+            { name: '감자', emoji: '🥔', category: 'general', forms: ['seed'], months: [3, 4], tempMin: 5, tempMax: 22, desc: '씨감자를 조각내어 이른 봄에 심으면 초여름에 수확할 수 있습니다.' },
+            { name: '고구마', emoji: '🍠', category: 'general', forms: ['seedling'], months: [5, 6], tempMin: 18, tempMax: 32, desc: '기온이 충분히 오른 늦봄에 순(모종)을 심어 가을에 캐는 작물입니다.' },
+            { name: '옥수수', emoji: '🌽', category: 'general', forms: ['seed'], months: [4, 5], tempMin: 15, tempMax: 32, desc: '햇빛을 많이 받는 장소에서 잘 자라는 대표 여름 작물입니다.' },
+            { name: '시금치', emoji: '🥬', category: 'general', forms: ['seed'], months: [3, 4, 9, 10], tempMin: 4, tempMax: 22, desc: '서늘한 기후를 좋아하며 봄·가을 파종이 모두 가능합니다.' },
+            { name: '대파', emoji: '🧅', category: 'general', forms: ['seed', 'seedling'], months: [3, 4, 5, 9, 10], tempMin: 8, tempMax: 26, desc: '봄·가을에 파종하거나 모종을 심으면 실패 없이 기를 수 있습니다.' },
+            { name: '바질', emoji: '🌿', category: 'general', forms: ['seed', 'seedling'], months: [4, 5, 6], tempMin: 18, tempMax: 32, desc: '향긋한 허브의 대표주자. 추위에 약하므로 기온이 충분히 올라간 뒤 심습니다.' },
+            { name: '로즈마리', emoji: '🌱', category: 'general', forms: ['seedling'], months: [3, 4, 5, 9, 10], tempMin: 8, tempMax: 28, desc: '다년생 허브. 물빠짐이 좋은 화분에 모종으로 심는 것이 가장 안전합니다.' },
+        ];
+
+        const MONTH_NAMES = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+
+        const WEATHER_CODES = {
+            0: { label: '맑음', icon: '☀️' },
+            1: { label: '대체로 맑음', icon: '🌤️' },
+            2: { label: '부분 구름', icon: '⛅' },
+            3: { label: '흐림', icon: '☁️' },
+            45: { label: '안개', icon: '🌫️' },
+            48: { label: '짙은 안개', icon: '🌫️' },
+            51: { label: '약한 이슬비', icon: '🌦️' },
+            53: { label: '이슬비', icon: '🌦️' },
+            55: { label: '짙은 이슬비', icon: '🌧️' },
+            56: { label: '얼어붙는 이슬비', icon: '🌨️' },
+            57: { label: '얼어붙는 이슬비', icon: '🌨️' },
+            61: { label: '약한 비', icon: '🌦️' },
+            63: { label: '비', icon: '🌧️' },
+            65: { label: '강한 비', icon: '🌧️' },
+            66: { label: '얼어붙는 비', icon: '🌨️' },
+            67: { label: '강한 얼어붙는 비', icon: '🌨️' },
+            71: { label: '약한 눈', icon: '🌨️' },
+            73: { label: '눈', icon: '❄️' },
+            75: { label: '강한 눈', icon: '❄️' },
+            77: { label: '싸락눈', icon: '❄️' },
+            80: { label: '약한 소나기', icon: '🌦️' },
+            81: { label: '소나기', icon: '🌧️' },
+            82: { label: '강한 소나기', icon: '⛈️' },
+            85: { label: '약한 눈 소나기', icon: '🌨️' },
+            86: { label: '강한 눈 소나기', icon: '❄️' },
+            95: { label: '뇌우', icon: '⛈️' },
+            96: { label: '우박을 동반한 뇌우', icon: '⛈️' },
+            99: { label: '강한 뇌우', icon: '⛈️' },
+        };
+
+        const state = {
+            ctx: null,
+            loading: false,
+            filters: { form: 'all', category: 'all' },
+        };
+
+        async function getLocation() {
+            if (!('geolocation' in navigator)) {
+                throw new Error('이 브라우저는 위치 서비스를 지원하지 않습니다.');
+            }
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                    (err) => {
+                        const messages = {
+                            1: '위치 권한이 거부되었어요.',
+                            2: '위치를 확인할 수 없어요.',
+                            3: '위치 요청이 시간 초과되었어요.',
+                        };
+                        reject(new Error(messages[err.code] || '위치를 가져오지 못했어요.'));
+                    },
+                    { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 }
+                );
+            });
+        }
+
+        async function reverseGeocode(lat, lon) {
+            try {
+                const res = await fetch(
+                    `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`
+                );
+                if (!res.ok) throw new Error('geocoding failed');
+                const data = await res.json();
+                const parts = [];
+                if (data.city) parts.push(data.city);
+                else if (data.locality) parts.push(data.locality);
+                if (data.principalSubdivision && !parts.includes(data.principalSubdivision)) {
+                    parts.push(data.principalSubdivision);
+                }
+                const label = parts.join(', ') || data.countryName || '알 수 없는 지역';
+                return { label, country: data.countryName || '' };
+            } catch (e) {
+                return { label: `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`, country: '' };
+            }
+        }
+
+        async function fetchWeather(lat, lon) {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('날씨 정보를 가져오지 못했어요.');
+            const data = await res.json();
+            const cur = data.current || {};
+            const daily = data.daily || {};
+            return {
+                temp: cur.temperature_2m,
+                feelsLike: cur.apparent_temperature,
+                humidity: cur.relative_humidity_2m,
+                wind: cur.wind_speed_10m,
+                code: cur.weather_code,
+                tMax: (daily.temperature_2m_max || [])[0],
+                tMin: (daily.temperature_2m_min || [])[0],
+            };
+        }
+
+        function setText(id, text, cls) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = text;
+            el.className = 'context-value' + (cls ? ' ' + cls : '');
+        }
+
+        function setHTML(id, html, cls) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = html;
+            el.className = 'context-value' + (cls ? ' ' + cls : '');
+        }
+
+        function formatDate(d) {
+            const y = d.getFullYear();
+            const m = d.getMonth() + 1;
+            const day = d.getDate();
+            const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+            return `${y}년 ${m}월 ${day}일 (${weekdays[d.getDay()]})`;
+        }
+
+        async function loadContext() {
+            state.loading = true;
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.classList.add('spinning');
+
+            const now = new Date();
+            setText('dateValue', formatDate(now));
+            setText('locationValue', '위치 확인 중…', 'loading');
+            setText('weatherValue', '날씨 확인 중…', 'loading');
+
+            let loc, weather;
+            let fallback = false;
+
+            try {
+                const coords = await getLocation();
+                loc = await reverseGeocode(coords.lat, coords.lon);
+                loc.lat = coords.lat;
+                loc.lon = coords.lon;
+            } catch (e) {
+                fallback = true;
+                loc = { label: '서울 (기본값)', country: '대한민국', lat: 37.5665, lon: 126.9780 };
+                setHTML('locationValue', `<span style="color:var(--warn)">${e.message}</span><span class="sub">기본 위치(서울)로 계속합니다</span>`);
+            }
+
+            try {
+                weather = await fetchWeather(loc.lat, loc.lon);
+            } catch (e) {
+                setText('weatherValue', '날씨를 가져오지 못했어요', 'error');
+                refreshBtn.classList.remove('spinning');
+                state.loading = false;
+                return;
+            }
+
+            if (!fallback) {
+                setHTML('locationValue', `${loc.label}<span class="sub">${loc.country || ''}</span>`);
+            }
+
+            const wc = WEATHER_CODES[weather.code] || { label: '알 수 없음', icon: '🌥️' };
+            setHTML(
+                'weatherValue',
+                `${wc.icon} ${Math.round(weather.temp)}°C <span class="sub">${wc.label} · 오늘 ${Math.round(weather.tMin)}° / ${Math.round(weather.tMax)}°</span>`
+            );
+
+            state.ctx = {
+                month: now.getMonth() + 1,
+                temp: weather.temp,
+                tMin: weather.tMin,
+                tMax: weather.tMax,
+                lat: loc.lat,
+                hemisphere: loc.lat < 0 ? 'S' : 'N',
+            };
+
+            renderPlants();
+            refreshBtn.classList.remove('spinning');
+            state.loading = false;
+        }
+
+        function adjustMonths(months, hemisphere) {
+            if (hemisphere !== 'S') return months;
+            return months.map((m) => ((m + 5) % 12) + 1);
+        }
+
+        function scorePlant(plant, ctx) {
+            const months = adjustMonths(plant.months, ctx.hemisphere);
+
+            // Month score
+            let monthScore = 0;
+            if (months.includes(ctx.month)) {
+                monthScore = 1;
+            } else {
+                const prev = ctx.month === 1 ? 12 : ctx.month - 1;
+                const next = ctx.month === 12 ? 1 : ctx.month + 1;
+                if (months.includes(prev) || months.includes(next)) monthScore = 0.4;
+            }
+
+            // Temperature score
+            const temp = ctx.temp;
+            let tempScore = 0;
+            if (temp >= plant.tempMin && temp <= plant.tempMax) {
+                const mid = (plant.tempMin + plant.tempMax) / 2;
+                const halfRange = Math.max(1, (plant.tempMax - plant.tempMin) / 2);
+                const dist = Math.abs(temp - mid) / halfRange;
+                tempScore = 1 - dist * 0.25;
+            } else {
+                const off = temp < plant.tempMin ? plant.tempMin - temp : temp - plant.tempMax;
+                tempScore = Math.max(0, 1 - off / 10) * 0.4;
+            }
+
+            const total = monthScore * 0.6 + tempScore * 0.4;
+            return { monthScore, tempScore, total, monthsAdjusted: months };
+        }
+
+        function formatMonths(months) {
+            const sorted = [...months].sort((a, b) => a - b);
+            const groups = [];
+            let start = sorted[0];
+            let prev = sorted[0];
+            for (let i = 1; i < sorted.length; i++) {
+                if (sorted[i] === prev + 1) {
+                    prev = sorted[i];
+                } else {
+                    groups.push(start === prev ? `${start}월` : `${start}~${prev}월`);
+                    start = sorted[i];
+                    prev = sorted[i];
+                }
+            }
+            groups.push(start === prev ? `${start}월` : `${start}~${prev}월`);
+            return groups.join(' · ');
+        }
+
+        function categoryLabel(c) {
+            return { flower: '꽃', fruit: '과일', general: '일반식물' }[c] || c;
+        }
+
+        function formLabel(f) {
+            return { seed: '씨앗', seedling: '모종' }[f] || f;
+        }
+
+        function formEmoji(f) {
+            return { seed: '🌱', seedling: '🪴' }[f] || '';
+        }
+
+        function renderPlants() {
+            const grid = document.getElementById('plantsGrid');
+            const empty = document.getElementById('emptyState');
+            const count = document.getElementById('plantsCount');
+
+            if (!state.ctx) {
+                grid.innerHTML = '';
+                empty.hidden = true;
+                count.textContent = '';
+                return;
+            }
+
+            const { form, category } = state.filters;
+            const scored = PLANTS.map((p) => ({ plant: p, score: scorePlant(p, state.ctx) }))
+                .filter(({ plant }) => {
+                    if (form !== 'all' && !plant.forms.includes(form)) return false;
+                    if (category !== 'all' && plant.category !== category) return false;
+                    return true;
+                })
+                .filter(({ score }) => score.total >= 0.3)
+                .sort((a, b) => b.score.total - a.score.total);
+
+            count.textContent = scored.length > 0 ? `· ${scored.length}개` : '';
+
+            if (scored.length === 0) {
+                grid.innerHTML = '';
+                empty.hidden = false;
+                return;
+            }
+
+            empty.hidden = true;
+
+            grid.innerHTML = scored
+                .map(({ plant, score }) => {
+                    const pct = Math.round(score.total * 100);
+                    const isHot = score.total >= 0.82;
+                    const tempInRange = state.ctx.temp >= plant.tempMin && state.ctx.temp <= plant.tempMax;
+                    const monthsStr = formatMonths(score.monthsAdjusted);
+                    const formsHtml = plant.forms
+                        .map((f) => `<span class="tag ${f}">${formEmoji(f)} ${formLabel(f)}</span>`)
+                        .join('');
+                    const hotBadge = isHot ? '<span class="hot-label">🔥 지금이 적기</span>' : '';
+
+                    return `
+                        <article class="plant-card${isHot ? ' hot' : ''}">
+                            <div class="plant-top">
+                                <div class="plant-emoji">${plant.emoji}</div>
+                                <div class="match-box">
+                                    <div class="match-pct">${pct}%</div>
+                                    <div class="match-bar"><div class="match-bar-fill" style="width:${pct}%"></div></div>
+                                    ${hotBadge}
+                                </div>
+                            </div>
+                            <h3 class="plant-name">${plant.name}</h3>
+                            <div class="plant-tags">
+                                <span class="tag ${plant.category}">${categoryLabel(plant.category)}</span>
+                                ${formsHtml}
+                            </div>
+                            <p class="plant-desc">${plant.desc}</p>
+                            <div class="plant-stats">
+                                <div class="stat-row">
+                                    <span class="stat-icon">📅</span>
+                                    <span>파종 적기</span>
+                                    <span class="stat-value">${monthsStr}</span>
+                                </div>
+                                <div class="stat-row${tempInRange ? '' : ' warn'}">
+                                    <span class="stat-icon">🌡️</span>
+                                    <span>적정 기온</span>
+                                    <span class="stat-value">${plant.tempMin}° ~ ${plant.tempMax}°C</span>
+                                </div>
+                            </div>
+                        </article>
+                    `;
+                })
+                .join('');
+        }
+
+        function bindFilters() {
+            document.querySelectorAll('.filter-pills').forEach((group) => {
+                const filterKey = group.dataset.filter;
+                group.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.pill');
+                    if (!btn) return;
+                    group.querySelectorAll('.pill').forEach((p) => p.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.filters[filterKey] = btn.dataset.value;
+                    renderPlants();
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            bindFilters();
+            loadContext();
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                if (!state.loading) loadContext();
+            });
+        });
+    </script>
+</body>
+</html>
