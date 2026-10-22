@@ -61,7 +61,7 @@
 </div>
 <button id="myLoc">📍 내 위치</button>
 <div id="map"></div>
-<div id="version">v20250111-6</div>
+<div id="version">v20250111-7</div>
 <div id="failed"></div>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=adde6fb3ba7173d26d38b2ea1cf1946e&libraries=services&autoload=false"></script>
@@ -106,7 +106,7 @@ kakao.maps.load(function () {
   const schoolState = {}; // type → { active, overlays: [] }
   document.querySelectorAll(".school-btn").forEach((btn) => {
     const type = btn.dataset.type;
-    schoolState[type] = { active: false, overlays: [] };
+    schoolState[type] = { active: false, overlays: [], seen: new Set() };
     btn.addEventListener("click", () => {
       const st = schoolState[type];
       st.active = !st.active;
@@ -124,6 +124,7 @@ kakao.maps.load(function () {
   function clearSchools(type) {
     schoolState[type].overlays.forEach((o) => o.setMap(null));
     schoolState[type].overlays = [];
+    schoolState[type].seen = new Set();
   }
 
   function refreshSchools(type) {
@@ -137,6 +138,11 @@ kakao.maps.load(function () {
       places.keywordSearch(type, (data, status, pagination) => {
         if (status !== kakao.maps.services.Status.OK) return;
         data.forEach((pl) => {
+          // 이름 끝의 괄호(예정, 본관 등)를 떼고 해당 학교급으로 끝나는 장소만 표시
+          const base = pl.place_name.replace(/\s*\(.*?\)\s*$/, "");
+          if (!base.endsWith(type)) return;
+          if (schoolState[type].seen.has(pl.id)) return;
+          schoolState[type].seen.add(pl.id);
           const latlng = new kakao.maps.LatLng(pl.y, pl.x);
           const marker = new kakao.maps.Marker({ map, position: latlng, image: img });
           const label = new kakao.maps.CustomOverlay({
