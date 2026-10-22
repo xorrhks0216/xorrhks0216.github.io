@@ -41,7 +41,7 @@
 <div id="status">로딩 중...</div>
 <button id="myLoc">📍 내 위치</button>
 <div id="map"></div>
-<div id="version">v20250111-4</div>
+<div id="version">v20250111-5</div>
 <div id="failed"></div>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=adde6fb3ba7173d26d38b2ea1cf1946e&libraries=services&autoload=false"></script>
@@ -118,18 +118,22 @@ kakao.maps.load(function () {
   async function resolveAddr(p) {
     const addr = p.liveAddr || p.regAddr;
     if (cache[addr]) return { addr, pos: cache[addr] };
-    let r = await geocodeOne(addr);
-    if (!r && p.regAddr && p.regAddr !== addr) r = await geocodeOne(p.regAddr);
-    if (r) {
-      cache[addr] = { y: r.y, x: r.x };
-      cacheDirty = true;
-      return { addr, pos: cache[addr] };
+    // rate limit 등으로 실패 시 간격을 늘려가며 최대 3회 재시도
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      let r = await geocodeOne(addr);
+      if (!r && p.regAddr && p.regAddr !== addr) r = await geocodeOne(p.regAddr);
+      if (r) {
+        cache[addr] = { y: r.y, x: r.x };
+        cacheDirty = true;
+        return { addr, pos: cache[addr] };
+      }
+      await new Promise((res) => setTimeout(res, 400 * attempt));
     }
     return { addr, pos: null };
   }
 
   (async function run() {
-    const CONCURRENCY = 10;
+    const CONCURRENCY = 6;
     let idx = 0;
 
     function place(p, addr, pos) {
