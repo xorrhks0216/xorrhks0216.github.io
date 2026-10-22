@@ -85,6 +85,11 @@ kakao.maps.load(function () {
   let done = 0, ok = 0;
   let openIw = null;
 
+  // 지도 빈 곳 클릭 시 열린 팝업 닫기
+  kakao.maps.event.addListener(map, "click", () => {
+    if (openIw) { openIw.close(); openIw = null; }
+  });
+
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
 
   function geocodeOne(addr) {
@@ -128,6 +133,7 @@ kakao.maps.load(function () {
           iw.open(map, marker);
           openIw = iw;
         });
+        kakao.maps.event.addListener(iw, "close", () => { openIw = null; });
       } else {
         failed.push(`${p.name}: ${addr}`);
       }
