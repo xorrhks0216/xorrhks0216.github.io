@@ -61,7 +61,7 @@
 </div>
 <button id="myLoc">📍 내 위치</button>
 <div id="map"></div>
-<div id="version">v20250111-7</div>
+<div id="version">v20250111-8</div>
 <div id="failed"></div>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=adde6fb3ba7173d26d38b2ea1cf1946e&libraries=services&autoload=false"></script>
@@ -236,7 +236,7 @@ kakao.maps.load(function () {
       const q = encodeURIComponent(`성범죄자 ${p.name}`);
       const iw = new kakao.maps.InfoWindow({
         removable: true,
-        content: `<div style="padding:10px;font-size:13px;min-width:200px">
+        content: `<div style="padding:10px;font-size:13px;width:210px;white-space:normal;word-break:keep-all;line-height:1.5">
           <b>${esc(p.name)}</b><br>${esc(addr)}<br>
           <a href="https://search.naver.com/search.naver?where=news&query=${q}" target="_blank">네이버 뉴스</a> ·
           <a href="https://news.google.com/search?q=${q}&hl=ko&gl=KR" target="_blank">구글 뉴스</a>
