@@ -41,7 +41,7 @@
 <div id="status">로딩 중...</div>
 <button id="myLoc">📍 내 위치</button>
 <div id="map"></div>
-<div id="version">v20250111-3</div>
+<div id="version">v20250111-4</div>
 <div id="failed"></div>
 
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=adde6fb3ba7173d26d38b2ea1cf1946e&libraries=services&autoload=false"></script>
@@ -106,45 +106,74 @@ kakao.maps.load(function () {
     });
   }
 
-  (async function run() {
-    for (const p of people) {
-      const addr = p.liveAddr || p.regAddr;
-      let r = await geocodeOne(addr);
-      if (!r && p.regAddr && p.regAddr !== addr) r = await geocodeOne(p.regAddr);
-      done++;
-      statusEl.textContent = `지오코딩 중... ${done}/${people.length}`;
-      if (r) {
-        ok++;
-        const pos = new kakao.maps.LatLng(r.y, r.x);
-        bounds.extend(pos);
-        const marker = new kakao.maps.Marker({ map, position: pos });
+  // 주소 → 좌표 캐시 (localStorage, 영구 보관)
+  const CACHE_KEY = "om_geocache_v1";
+  let cache = {};
+  try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}"); } catch {}
+  let cacheDirty = false;
+  setInterval(() => {
+    if (cacheDirty) { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); cacheDirty = false; }
+  }, 2000);
 
-        // 이름 라벨 상시 표시
-        new kakao.maps.CustomOverlay({
-          map, position: pos, yAnchor: -0.3,
-          content: `<div class="name-label">${esc(p.name)}</div>`,
-        });
-
-        const q = encodeURIComponent(`성범죄자 ${p.name}`);
-        const iw = new kakao.maps.InfoWindow({
-          removable: true,
-          content: `<div style="padding:10px;font-size:13px;min-width:200px">
-            <b>${esc(p.name)}</b><br>${esc(addr)}<br>
-            <a href="https://search.naver.com/search.naver?where=news&query=${q}" target="_blank">네이버 뉴스</a> ·
-            <a href="https://news.google.com/search?q=${q}&hl=ko&gl=KR" target="_blank">구글 뉴스</a>
-          </div>`,
-        });
-        kakao.maps.event.addListener(marker, "click", () => {
-          if (openIw) openIw.close();
-          iw.open(map, marker);
-          openIw = iw;
-        });
-        kakao.maps.event.addListener(iw, "close", () => { openIw = null; });
-      } else {
-        failed.push(`${p.name}: ${addr}`);
-      }
-      await new Promise((res) => setTimeout(res, 120));
+  async function resolveAddr(p) {
+    const addr = p.liveAddr || p.regAddr;
+    if (cache[addr]) return { addr, pos: cache[addr] };
+    let r = await geocodeOne(addr);
+    if (!r && p.regAddr && p.regAddr !== addr) r = await geocodeOne(p.regAddr);
+    if (r) {
+      cache[addr] = { y: r.y, x: r.x };
+      cacheDirty = true;
+      return { addr, pos: cache[addr] };
     }
+    return { addr, pos: null };
+  }
+
+  (async function run() {
+    const CONCURRENCY = 10;
+    let idx = 0;
+
+    function place(p, addr, pos) {
+      ok++;
+      const latlng = new kakao.maps.LatLng(pos.y, pos.x);
+      bounds.extend(latlng);
+      const marker = new kakao.maps.Marker({ map, position: latlng });
+
+      new kakao.maps.CustomOverlay({
+        map, position: latlng, yAnchor: -0.3,
+        content: `<div class="name-label">${esc(p.name)}</div>`,
+      });
+
+      const q = encodeURIComponent(`성범죄자 ${p.name}`);
+      const iw = new kakao.maps.InfoWindow({
+        removable: true,
+        content: `<div style="padding:10px;font-size:13px;min-width:200px">
+          <b>${esc(p.name)}</b><br>${esc(addr)}<br>
+          <a href="https://search.naver.com/search.naver?where=news&query=${q}" target="_blank">네이버 뉴스</a> ·
+          <a href="https://news.google.com/search?q=${q}&hl=ko&gl=KR" target="_blank">구글 뉴스</a>
+        </div>`,
+      });
+      kakao.maps.event.addListener(marker, "click", () => {
+        if (openIw) openIw.close();
+        iw.open(map, marker);
+        openIw = iw;
+      });
+      kakao.maps.event.addListener(iw, "close", () => { openIw = null; });
+    }
+
+    async function worker() {
+      while (idx < people.length) {
+        const p = people[idx++];
+        const { addr, pos } = await resolveAddr(p);
+        done++;
+        statusEl.textContent = `지오코딩 중... ${done}/${people.length}`;
+        if (pos) place(p, addr, pos);
+        else failed.push(`${p.name}: ${addr}`);
+      }
+    }
+
+    await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+
     statusEl.textContent = `총 ${people.length}명 중 ${ok}명 표시됨`;
     if (ok > 0) map.setBounds(bounds);
     if (failed.length) {
